@@ -397,13 +397,11 @@ const SETUP_WIZARD = (() => {
           var idInput = document.querySelector('[data-folder-id="' + i + '"]');
           var typeInput = document.querySelector('[data-folder-type="' + i + '"]');
           if (!nameInput) break;
-          if (nameInput.value || idInput.value) {
-            cfg.autoeditors.folders.push({
-              name: nameInput.value,
-              driveId: idInput.value,
-              type: typeInput ? typeInput.value : 'source'
-            });
-          }
+          cfg.autoeditors.folders.push({
+            name: nameInput.value,
+            driveId: idInput.value,
+            type: typeInput ? typeInput.value : 'source'
+          });
           i++;
         }
         break;
