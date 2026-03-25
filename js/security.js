@@ -16,7 +16,7 @@
  *    [C-02] Stored XSS via renderAuditTable() -- entry.user, entry.details,
  *           entry.target, entry.ip injected into innerHTML (lines 5919-5941)
  *    [C-03] Plaintext passwords stored in JS object, visible via console
- *           (AUTH.users[*].password = 'demo', lines 5124-5133)
+ *           (AUTH.users[*].password, visible in source)
  *
  *  HIGH (6):
  *    [H-01] XSS via title attribute injection -- entry.details inserted
@@ -28,8 +28,8 @@
  *    [H-04] Session timer bypass via console -- AUTH.sessionEndTime and
  *           AUTH.clearSessionTimer() are publicly accessible, attacker can
  *           call AUTH.extendSession() indefinitely
- *    [H-05] New users created with hardcoded password 'demo' (line 5844)
- *           and password reset sets password to 'demo' (line 5868)
+ *    [H-05] New users created with default password 'Change1!'
+ *           and password reset sets password to 'Change1!'
  *    [H-06] No CSRF protection on state-changing operations -- all form
  *           submissions and API-like calls lack CSRF tokens
  *

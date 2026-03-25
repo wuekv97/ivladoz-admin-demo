@@ -15,6 +15,8 @@ const API = (() => {
 
   const STORAGE_KEY = 'ivladoz_data';
   const SESSION_KEY = 'ivladoz_session';
+  const VERSION_KEY = 'ivladoz_version';
+  const CURRENT_VERSION = '2.1.0'; // bump to force data reset on deploy
   let _listeners = {};
   let _db = null;
   let _baseUrl = null;
@@ -138,6 +140,15 @@ const API = (() => {
     // -- Core -----------------------------------------------------------------
     /** Initialize the API layer. Loads from localStorage or seeds defaults. */
     async init() {
+      // Version check: wipe old data on version mismatch
+      const storedVersion = localStorage.getItem(VERSION_KEY);
+      if (storedVersion !== CURRENT_VERSION) {
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem('ivladoz_setup_complete');
+        localStorage.removeItem('ivladoz_setup');
+        localStorage.setItem(VERSION_KEY, CURRENT_VERSION);
+        _db = null;
+      }
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) try { _db = JSON.parse(raw); } catch { _db = null; }
       if (!_db) { _db = _defaults(); save(); }

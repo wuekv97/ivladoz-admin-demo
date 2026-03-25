@@ -46,36 +46,12 @@ const AUTH = {
 
   /* ---- User database (loaded from API or seeded) ---- */
   users: [
-    { id: 1, name: 'Yehor K.',    email: 'yehor@ivladoz.com',    role: 'super_admin', systems: ['postflow','autoeditors','superboost'], password: 'demo', status: 'active',   lastLogin: '2026-03-24 10:15:22', loginCount: 284, weeklyActions: 142 },
-    { id: 2, name: 'Ivan D.',     email: 'ivan@ivladoz.com',     role: 'admin',       systems: ['postflow','autoeditors'],              password: 'demo', status: 'active',   lastLogin: '2026-03-24 09:30:05', loginCount: 156, weeklyActions: 67  },
-    { id: 3, name: 'Olena M.',    email: 'olena@ivladoz.com',    role: 'admin',       systems: ['superboost'],                    password: 'demo', status: 'active',   lastLogin: '2026-03-23 17:45:11', loginCount: 98,  weeklyActions: 31  },
-    { id: 4, name: 'Andrii S.',   email: 'andrii@ivladoz.com',   role: 'manager',     systems: ['postflow'],                       password: 'demo', status: 'active',   lastLogin: '2026-03-24 08:20:44', loginCount: 73,  weeklyActions: 45  },
-    { id: 5, name: 'Marina P.',   email: 'marina@ivladoz.com',   role: 'manager',     systems: ['autoeditors','superboost'],           password: 'demo', status: 'active',   lastLogin: '2026-03-23 16:10:33', loginCount: 61,  weeklyActions: 28  },
-    { id: 6, name: 'Dmytro R.',   email: 'dmytro@ivladoz.com',   role: 'assistant',   systems: ['postflow'],                       password: 'demo', status: 'active',   lastLogin: '2026-03-24 07:55:18', loginCount: 42,  weeklyActions: 19  },
-    { id: 7, name: 'Svitlana K.', email: 'svitlana@ivladoz.com', role: 'assistant',   systems: ['superboost'],                    password: 'demo', status: 'active',   lastLogin: '2026-03-22 14:30:09', loginCount: 37,  weeklyActions: 12  },
-    { id: 8, name: 'Petro V.',    email: 'petro@ivladoz.com',    role: 'assistant',   systems: ['autoeditors'],                        password: 'demo', status: 'disabled', lastLogin: '2026-03-15 11:20:00', loginCount: 15,  weeklyActions: 0   },
-    { id: 9, name: 'Taras H.',    email: 'taras@ivladoz.com',    role: 'manager',     systems: ['postflow','autoeditors','superboost'], password: 'demo', status: 'active',   lastLogin: '2026-03-24 09:00:17', loginCount: 89,  weeklyActions: 52  },
-    { id:10, name: 'Katya L.',    email: 'katya@ivladoz.com',    role: 'assistant',   systems: ['autoeditors','superboost'],           password: 'demo', status: 'active',   lastLogin: '2026-03-24 08:40:03', loginCount: 28,  weeklyActions: 15  }
+    { id: 1, name: 'Yehor K.',     email: 'yehor@ivladoz.com', role: 'super_admin', systems: ['postflow','autoeditors','superboost'], password: 'Ivladoz2026!', status: 'active', lastLogin: '--', loginCount: 0, weeklyActions: 0 },
+    { id: 2, name: 'Vladislav I.', email: 'vlad@ivladoz.com',  role: 'admin',       systems: ['postflow','autoeditors','superboost'], password: 'Vlad2026!',    status: 'active', lastLogin: '--', loginCount: 0, weeklyActions: 0 }
   ],
 
   /* ---- Audit log entries ---- */
-  auditLog: [
-    { id: 1,  ts: '2026-03-24 10:15:22', user: 'Yehor K.',    action: 'login',              system: 'auth',       target: '--',                     ip: '91.220.41.18',   details: 'Successful login via password' },
-    { id: 2,  ts: '2026-03-24 10:02:05', user: 'Ivan D.',     action: 'batch_triggered',    system: 'postflow',    target: 'Postflow B3',               ip: '91.220.41.22',   details: 'Manual trigger, 36 targets queued' },
-    { id: 3,  ts: '2026-03-24 09:45:11', user: 'Yehor K.',    action: 'config_change',      system: 'postflow',    target: 'DRY_RUN',                ip: '91.220.41.18',   details: 'Changed from true to false' },
-    { id: 4,  ts: '2026-03-24 09:30:05', user: 'Ivan D.',     action: 'login',              system: 'auth',       target: '--',                     ip: '91.220.41.22',   details: 'Successful login via password' },
-    { id: 5,  ts: '2026-03-24 09:12:33', user: 'Olena M.',    action: 'user_created',       system: 'auth',       target: 'Svitlana K. (assistant)',ip: '178.54.12.90',   details: 'New assistant account created' },
-    { id: 6,  ts: '2026-03-24 08:55:00', user: 'System',      action: 'batch_triggered',    system: 'postflow',    target: 'Postflow B1',               ip: '127.0.0.1',      details: 'Scheduled trigger, cron job' },
-    { id: 7,  ts: '2026-03-24 08:20:44', user: 'Andrii S.',   action: 'login',              system: 'auth',       target: '--',                     ip: '95.67.88.105',   details: 'Successful login via password' },
-    { id: 8,  ts: '2026-03-24 07:55:18', user: 'Dmytro R.',   action: 'task_completed',     system: 'postflow',    target: 'Task #247',              ip: '176.38.22.14',   details: 'Marked as done, 3 clips delivered' },
-    { id: 9,  ts: '2026-03-23 23:15:00', user: 'Unknown',     action: 'failed_login',       system: 'auth',       target: 'admin@ivladoz.com',      ip: '45.134.26.88',   details: 'Invalid credentials, attempt 3/5' },
-    { id: 10, ts: '2026-03-23 21:30:44', user: 'Yehor K.',    action: 'permission_changed', system: 'auth',       target: 'Marina P.',              ip: '91.220.41.18',   details: 'Added system: superboost' },
-    { id: 11, ts: '2026-03-23 19:20:11', user: 'Marina P.',   action: 'task_completed',     system: 'autoeditors',     target: 'Assignment #89',         ip: '93.175.44.201',  details: 'Completed 5 video assignments' },
-    { id: 12, ts: '2026-03-23 17:45:11', user: 'Olena M.',    action: 'login',              system: 'auth',       target: '--',                     ip: '178.54.12.90',   details: 'Successful login via password' },
-    { id: 13, ts: '2026-03-23 16:10:33', user: 'Marina P.',   action: 'login',              system: 'auth',       target: '--',                     ip: '93.175.44.201',  details: 'Successful login via password' },
-    { id: 14, ts: '2026-03-23 14:05:00', user: 'Yehor K.',    action: 'config_change',      system: 'superboost', target: 'MAX_DAILY_TASKS',        ip: '91.220.41.18',   details: 'Changed from 50 to 75' },
-    { id: 15, ts: '2026-03-23 11:20:00', user: 'Ivan D.',     action: 'logout',             system: 'auth',       target: '--',                     ip: '91.220.41.22',   details: 'Manual logout' }
-  ],
+  auditLog: [],
 
 
   /* ===========================================================
@@ -172,10 +148,6 @@ const AUTH = {
     }
   },
 
-  fillDemo(email) {
-    document.getElementById('login-email').value = email;
-    document.getElementById('login-password').value = 'demo';
-  },
 
 
   /* ===========================================================
@@ -714,7 +686,7 @@ const AUTH_UI = {
         email: email,
         role: role,
         systems: systems,
-        password: 'demo',
+        password: 'Change1!',
         status: status,
         lastLogin: '--',
         loginCount: 0,
@@ -738,8 +710,8 @@ const AUTH_UI = {
     if (this.editingUserId) {
       const user = AUTH.users.find(u => u.id === this.editingUserId);
       if (user) {
-        user.password = 'demo';
-        AUTH.addAuditEntry('permission_changed', 'auth', user.name, 'Password reset');
+        user.password = 'Change1!';
+        AUTH.addAuditEntry('permission_changed', 'auth', user.name, 'Password reset to default');
         const btn = document.querySelector('#user-modal-info button');
         if (btn) {
           const orig = btn.innerHTML;
