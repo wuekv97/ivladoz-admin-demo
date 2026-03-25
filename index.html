@@ -133,12 +133,12 @@
      First-run configuration wizard. Shows before login when
      no configuration exists.
      ============================================================ -->
-<div id="setup-wizard-page" class="hidden fixed inset-0 z-[10000] flex items-center justify-center min-h-screen" style="background: linear-gradient(135deg, #0a0f1e 0%, #0f172a 40%, #131c33 70%, #0a0f1e 100%);">
+<div id="setup-wizard-page" class="hidden fixed inset-0 z-[10000] flex items-center justify-center min-h-screen overflow-y-auto py-8" style="background: linear-gradient(135deg, #0a0f1e 0%, #0f172a 40%, #131c33 70%, #0a0f1e 100%);">
 
   <!-- Grid overlay -->
-  <div class="absolute inset-0 opacity-[0.03]" style="background-image: radial-gradient(circle at 1px 1px, #22d3ee 1px, transparent 0); background-size: 40px 40px;"></div>
+  <div class="fixed inset-0 opacity-[0.03] pointer-events-none" style="background-image: radial-gradient(circle at 1px 1px, #22d3ee 1px, transparent 0); background-size: 40px 40px;"></div>
 
-  <div class="relative w-full max-w-2xl mx-4">
+  <div class="relative w-full max-w-2xl mx-4 my-auto">
     <!-- Skip button -->
     <div class="flex justify-end mb-4">
       <button onclick="SETUP_WIZARD.skip()" class="text-xs text-slate-600 hover:text-slate-400 transition-colors cursor-pointer flex items-center gap-1">
@@ -168,7 +168,7 @@
       </div>
 
       <!-- Step content -->
-      <div id="wiz-step-content" class="px-8 py-6 min-h-[380px]">
+      <div id="wiz-step-content" class="px-8 py-6 min-h-[380px] max-h-[60vh] overflow-y-auto">
         <!-- Populated by JS -->
       </div>
 

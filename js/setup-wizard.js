@@ -45,7 +45,7 @@ const SETUP_WIZARD = (() => {
       },
       autoeditors: {
         telegram_bot_token: '',
-        google_drive_api_key: '',
+        service_account_json: '',
         google_service_account_email: '',
         google_sheets_id: '',
         sync_interval_minutes: '15',
@@ -271,8 +271,29 @@ const SETUP_WIZARD = (() => {
       <div class="space-y-4">
         ${inputField('wiz-ae-bot-token', 'Telegram Bot Token', c.telegram_bot_token, { placeholder: '123456:ABC-DEF...', icon: 'ph-telegram-logo', required: true, hint: 'Bot for editor notifications' })}
         <div id="wiz-ae-bot-info" class="mt-2 hidden"></div>
-        ${inputField('wiz-ae-api-key', 'Google Drive API Key', c.google_drive_api_key, { placeholder: 'AIzaSy...', icon: 'ph-key', required: true, hint: 'From Google Cloud Console' })}
-        ${inputField('wiz-ae-service-email', 'Service Account Email', c.google_service_account_email, { placeholder: 'bot@project.iam.gserviceaccount.com', icon: 'ph-envelope', hint: 'Google service account for Drive access' })}
+        <div class="space-y-1.5">
+          <label class="flex items-center gap-2 text-sm font-medium text-slate-300">
+            <i class="ph-bold ph-file-arrow-up text-slate-500"></i>
+            Service Account JSON
+            <span class="text-red-400 text-xs">*</span>
+          </label>
+          <div id="wiz-ae-sa-dropzone" onclick="document.getElementById('wiz-ae-sa-file').click()"
+               class="relative border-2 border-dashed border-slate-700 hover:border-violet-500/50 rounded-lg px-4 py-5 text-center cursor-pointer transition-colors">
+            <input type="file" id="wiz-ae-sa-file" accept=".json" class="hidden" onchange="SETUP_WIZARD.handleServiceAccountFile(this)">
+            <div id="wiz-ae-sa-placeholder" class="${c.service_account_json ? 'hidden' : ''}">
+              <i class="ph-bold ph-cloud-arrow-up text-2xl text-slate-600 mb-1"></i>
+              <p class="text-sm text-slate-500">Drop or click to upload <span class="text-violet-400 font-mono">service-account.json</span></p>
+              <p class="text-xs text-slate-700 mt-1">Downloaded from Google Cloud Console</p>
+            </div>
+            <div id="wiz-ae-sa-result" class="${c.service_account_json ? '' : 'hidden'}">
+              <i class="ph-bold ph-check-circle text-lg text-emerald-400"></i>
+              <p class="text-sm text-emerald-400 font-medium mt-1">Service Account Loaded</p>
+              <p class="text-xs text-slate-500 font-mono mt-0.5" id="wiz-ae-sa-email">${san(c.google_service_account_email || '')}</p>
+            </div>
+          </div>
+          <p class="text-xs text-slate-600">Required for Google Drive & Sheets access. Bot won't work without it.</p>
+        </div>
+        ${inputField('wiz-ae-service-email', 'Service Account Email', c.google_service_account_email, { placeholder: 'Auto-filled from JSON', icon: 'ph-envelope', hint: 'Auto-filled when you upload the JSON file' })}
         ${inputField('wiz-ae-sheets-id', 'Google Sheets ID', c.google_sheets_id, { placeholder: '1BxiM...', icon: 'ph-table', hint: 'Tracking spreadsheet ID' })}
         <div class="grid grid-cols-2 gap-4">
           ${inputField('wiz-ae-sync-interval', 'Sync Interval (min)', c.sync_interval_minutes, { type: 'number', icon: 'ph-arrows-clockwise', placeholder: '15' })}
@@ -352,7 +373,7 @@ const SETUP_WIZARD = (() => {
             ${cfg.autoeditors.telegram_bot_token ? '<span class="ml-auto text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400">Ready</span>' : '<span class="ml-auto text-[10px] px-1.5 py-0.5 rounded bg-slate-500/20 text-slate-400">Skip</span>'}
           </div>
           ${cfgLine('Bot Token', cfg.autoeditors.telegram_bot_token, true)}
-          ${cfgLine('API Key', cfg.autoeditors.google_drive_api_key, true)}
+          ${cfgLine('Service Account', cfg.autoeditors.service_account_json ? 'Uploaded' : '')}
           ${cfgLine('Folders', folderCount + ' configured')}
         </div>
 
@@ -393,7 +414,7 @@ const SETUP_WIZARD = (() => {
 
       case 2: // Autoeditors
         cfg.autoeditors.telegram_bot_token = ($('wiz-ae-bot-token') || {}).value || '';
-        cfg.autoeditors.google_drive_api_key = ($('wiz-ae-api-key') || {}).value || '';
+        // service_account_json is set by file upload handler, don't overwrite
         cfg.autoeditors.google_service_account_email = ($('wiz-ae-service-email') || {}).value || '';
         cfg.autoeditors.google_sheets_id = ($('wiz-ae-sheets-id') || {}).value || '';
         cfg.autoeditors.sync_interval_minutes = ($('wiz-ae-sync-interval') || {}).value || '15';
@@ -545,8 +566,8 @@ const SETUP_WIZARD = (() => {
       case 2: { // Autoeditors
         const token = cfg.autoeditors.telegram_bot_token;
         if (!token) return 'Telegram Bot Token is required.';
-        if (!cfg.autoeditors.google_drive_api_key) return 'Google Drive API Key is required.';
-        if (!cfg.autoeditors.google_service_account_email) return 'Service Account Email is required.';
+        if (!cfg.autoeditors.service_account_json) return 'Service Account JSON file is required. Upload it above.';
+        if (!cfg.autoeditors.google_service_account_email) return 'Service Account Email is missing. Re-upload the JSON file.';
         setLoading(true);
         const res = await validateBotToken(token);
         setLoading(false);
@@ -626,7 +647,7 @@ const SETUP_WIZARD = (() => {
               MAX_ACTIVE_PER_EDITOR: cfg.autoeditors.max_active_per_editor,
               AUTO_ASSIGN: String(cfg.autoeditors.auto_assign),
               TELEGRAM_BOT_TOKEN: cfg.autoeditors.telegram_bot_token,
-              GOOGLE_DRIVE_API_KEY: cfg.autoeditors.google_drive_api_key,
+              SERVICE_ACCOUNT_JSON: cfg.autoeditors.service_account_json ? 'uploaded' : '',
               GOOGLE_SERVICE_ACCOUNT: cfg.autoeditors.google_service_account_email,
               GOOGLE_SHEETS_ID: cfg.autoeditors.google_sheets_id
             });
@@ -705,6 +726,46 @@ const SETUP_WIZARD = (() => {
       cfg.autoeditors.folders.splice(index, 1);
       saveConfig(cfg);
       renderStep(2);
+    },
+
+    /** Handle service-account.json file upload */
+    handleServiceAccountFile(input) {
+      const file = input.files && input.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const json = JSON.parse(e.target.result);
+          if (!json.client_email || !json.private_key) {
+            showStepError('Invalid service account file. Must contain client_email and private_key.');
+            return;
+          }
+          hideStepError();
+          // Save to config
+          const cfg = getConfig();
+          cfg.autoeditors.service_account_json = e.target.result;
+          cfg.autoeditors.google_service_account_email = json.client_email;
+          saveConfig(cfg);
+          // Update UI
+          const emailField = $('wiz-ae-service-email');
+          if (emailField) emailField.value = json.client_email;
+          const placeholder = $('wiz-ae-sa-placeholder');
+          const result = $('wiz-ae-sa-result');
+          const emailDisplay = $('wiz-ae-sa-email');
+          if (placeholder) placeholder.classList.add('hidden');
+          if (result) result.classList.remove('hidden');
+          if (emailDisplay) emailDisplay.textContent = json.client_email;
+          // Change dropzone border to success
+          const dropzone = $('wiz-ae-sa-dropzone');
+          if (dropzone) {
+            dropzone.classList.remove('border-slate-700');
+            dropzone.classList.add('border-emerald-500/50');
+          }
+        } catch (err) {
+          showStepError('Could not parse JSON file: ' + err.message);
+        }
+      };
+      reader.readAsText(file);
     },
 
     /** Skip wizard (for demo) */

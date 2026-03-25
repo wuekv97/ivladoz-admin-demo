@@ -36,7 +36,7 @@ const SETTINGS_PAGE = (() => {
 
       ${renderSection('autoeditors', 'ph-google-drive-logo', 'Autoeditors', 'violet', [
         { key: 'telegram_bot_token', label: 'Telegram Bot Token', value: ae.telegram_bot_token, type: 'password', icon: 'ph-telegram-logo' },
-        { key: 'google_drive_api_key', label: 'Google Drive API Key', value: ae.google_drive_api_key, type: 'password', icon: 'ph-key' },
+        { key: 'service_account_status', label: 'Service Account', value: ae.service_account_json ? 'Uploaded' : 'Not uploaded', icon: 'ph-file-arrow-up', readonly: true },
         { key: 'google_service_account_email', label: 'Service Account Email', value: ae.google_service_account_email, icon: 'ph-envelope' },
         { key: 'google_sheets_id', label: 'Google Sheets ID', value: ae.google_sheets_id, icon: 'ph-table' },
         { key: 'sync_interval_minutes', label: 'Sync Interval (min)', value: ae.sync_interval_minutes, type: 'number', icon: 'ph-arrows-clockwise' },
@@ -136,7 +136,7 @@ const SETTINGS_PAGE = (() => {
         cooldown_minutes: 'COOLDOWN_MINUTES',
         default_platform: 'DEFAULT_PLATFORM',
         telegram_bot_token: 'TELEGRAM_BOT_TOKEN',
-        google_drive_api_key: 'GOOGLE_DRIVE_API_KEY',
+        service_account_json: 'SERVICE_ACCOUNT_JSON',
         google_service_account_email: 'GOOGLE_SERVICE_ACCOUNT',
         google_sheets_id: 'GOOGLE_SHEETS_ID'
       };
