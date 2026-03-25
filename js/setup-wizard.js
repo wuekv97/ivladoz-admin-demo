@@ -41,7 +41,7 @@ const SETUP_WIZARD = (() => {
         post_interval_seconds: '120',
         max_retries: '3',
         quarantine_hours: '24',
-        timezone: 'Europe/Kyiv'
+        timezone: 'Europe/Athens'
       },
       autoeditors: {
         telegram_bot_token: '',
@@ -140,7 +140,7 @@ const SETUP_WIZARD = (() => {
         <h2 class="text-2xl font-bold text-white mb-3">Welcome to Setup</h2>
         <p class="text-slate-400 mb-8 leading-relaxed">
           This wizard will guide you through configuring all three systems.
-          You'll set up Telegram bot tokens, API keys, Google Drive integration,
+          You'll set up Telegram bot tokens, Google Drive integration,
           and your admin account — all from this interface.
         </p>
         <div class="grid grid-cols-3 gap-4 text-center">
@@ -243,7 +243,7 @@ const SETUP_WIZARD = (() => {
         <div class="grid grid-cols-2 gap-4">
           ${inputField('wiz-pf-quarantine', 'Quarantine Hours', c.quarantine_hours, { type: 'number', icon: 'ph-shield-warning', placeholder: '24' })}
           ${selectField('wiz-pf-timezone', 'Timezone', c.timezone, [
-            'Europe/Kyiv', 'Europe/London', 'Europe/Berlin', 'America/New_York',
+            'Europe/Athens', 'Europe/Kyiv', 'Europe/London', 'Europe/Berlin', 'America/New_York',
             'America/Los_Angeles', 'Asia/Tokyo', 'Asia/Singapore', 'UTC'
           ], { icon: 'ph-globe' })}
         </div>
@@ -409,7 +409,7 @@ const SETUP_WIZARD = (() => {
         cfg.postflow.post_interval_seconds = ($('wiz-pf-interval') || {}).value || '120';
         cfg.postflow.max_retries = ($('wiz-pf-retries') || {}).value || '3';
         cfg.postflow.quarantine_hours = ($('wiz-pf-quarantine') || {}).value || '24';
-        cfg.postflow.timezone = ($('wiz-pf-timezone') || {}).value || 'Europe/Kyiv';
+        cfg.postflow.timezone = ($('wiz-pf-timezone') || {}).value || 'Europe/Athens';
         break;
 
       case 2: // Autoeditors
