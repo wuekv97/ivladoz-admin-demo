@@ -424,6 +424,90 @@ const SETUP_WIZARD = (() => {
     return btn ? btn.classList.contains('bg-cyan-500') : false;
   }
 
+  // ---- Validation ----
+
+  function showStepError(msg) {
+    let el = $('wiz-step-error');
+    if (!el) {
+      const container = $('wiz-step-content');
+      if (!container) return;
+      el = document.createElement('div');
+      el.id = 'wiz-step-error';
+      el.className = 'mt-4 px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm flex items-center gap-2';
+      container.appendChild(el);
+    }
+    el.innerHTML = '<i class="ph-bold ph-warning-circle shrink-0"></i><span>' + san(msg) + '</span>';
+    el.classList.remove('hidden');
+  }
+
+  function hideStepError() {
+    const el = $('wiz-step-error');
+    if (el) el.classList.add('hidden');
+  }
+
+  /** Validate Telegram bot token via API */
+  async function validateBotToken(token) {
+    if (!token || !token.match(/^\d+:[A-Za-z0-9_-]{30,}$/)) {
+      return 'Invalid token format. Expected: 123456:ABC-DEF...';
+    }
+    try {
+      const resp = await fetch('https://api.telegram.org/bot' + token + '/getMe');
+      const data = await resp.json();
+      if (!data.ok) return 'Token rejected by Telegram: ' + (data.description || 'unknown error');
+      return null; // valid
+    } catch (e) {
+      return 'Could not reach Telegram API. Check your connection.';
+    }
+  }
+
+  /** Validate step before advancing */
+  async function validateStep(step, cfg) {
+    const setLoading = (on) => {
+      const btn = $('wiz-next-btn');
+      if (!btn) return;
+      if (on) {
+        btn.disabled = true;
+        btn.dataset.origHtml = btn.innerHTML;
+        btn.innerHTML = '<span class="loading-dots"><span></span><span></span><span></span></span> Validating...';
+        btn.classList.add('opacity-60');
+      } else {
+        btn.disabled = false;
+        btn.innerHTML = btn.dataset.origHtml || 'Next <i class="ph-bold ph-arrow-right"></i>';
+        btn.classList.remove('opacity-60');
+      }
+    };
+
+    switch (step) {
+      case 1: { // Postflow
+        const token = cfg.postflow.telegram_bot_token;
+        if (!token) return 'Telegram Bot Token is required.';
+        setLoading(true);
+        const err = await validateBotToken(token);
+        setLoading(false);
+        return err;
+      }
+      case 2: { // Autoeditors
+        const token = cfg.autoeditors.telegram_bot_token;
+        if (!token) return 'Telegram Bot Token is required.';
+        if (!cfg.autoeditors.google_drive_api_key) return 'Google Drive API Key is required.';
+        if (!cfg.autoeditors.google_service_account_email) return 'Service Account Email is required.';
+        setLoading(true);
+        const err = await validateBotToken(token);
+        setLoading(false);
+        return err;
+      }
+      case 3: { // Superboost
+        const token = cfg.superboost.telegram_bot_token;
+        if (!token) return 'Telegram Bot Token is required.';
+        setLoading(true);
+        const err = await validateBotToken(token);
+        setLoading(false);
+        return err;
+      }
+    }
+    return null;
+  }
+
   // ---- Public API ----
 
   return {
@@ -441,9 +525,15 @@ const SETUP_WIZARD = (() => {
       return true;
     },
 
-    /** Go to next step */
-    next() {
+    /** Go to next step (with validation) */
+    async next() {
       const cfg = collectCurrentStep();
+      const err = await validateStep(_step, cfg);
+      if (err) {
+        showStepError(err);
+        return;
+      }
+      hideStepError();
       if (_step < TOTAL_STEPS) {
         renderStep(_step + 1);
       } else {

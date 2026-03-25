@@ -111,7 +111,10 @@ const API = (() => {
 
   // -- Default seed -----------------------------------------------------------
   const _defaults = () => ({
-    users: [{ id: 'u1', name: 'Yehor K.', email: 'yehor@ivladoz.com', role: 'super_admin', systems: ['postflow','autoeditors','superboost'], password: 'admin', status: 'active', lastLogin: null, loginCount: 0, createdAt: now(), updatedAt: now() }],
+    users: [
+      { id: 'u1', name: 'Yehor K.',  email: 'yehor@ivladoz.com', role: 'super_admin', systems: ['postflow','autoeditors','superboost'], password: 'Ivladoz2026!', status: 'active', lastLogin: null, loginCount: 0, createdAt: now(), updatedAt: now() },
+      { id: 'u2', name: 'Vladislav I.', email: 'vlad@ivladoz.com', role: 'admin', systems: ['postflow','autoeditors','superboost'], password: 'Vlad2026!', status: 'active', lastLogin: null, loginCount: 0, createdAt: now(), updatedAt: now() }
+    ],
     auditLog: [],
     postflow_items: [], postflow_runs: [], postflow_problems: [], postflow_editors: [], postflow_alerts: [],
     postflow_config: { DRY_RUN: 'false', POST_INTERVAL_SECONDS: '120', MAX_RETRIES: '3', QUARANTINE_HOURS: '24', TIMEZONE: 'Europe/Kyiv' },
@@ -417,78 +420,9 @@ const API = (() => {
     // =========================================================================
     //  Demo Seeder
     // =========================================================================
-    /** Populate rich demo data for all three systems. */
+    /** Reset all data to clean state (no demo data). */
     async seedDemo() {
-      _db.users = [
-        { id: 'u1', name: 'Yehor K.',  email: 'yehor@ivladoz.com',  role: 'super_admin', systems: ['postflow','autoeditors','superboost'], password: 'demo', status: 'active', lastLogin: '2026-03-24 10:15:22', loginCount: 284, createdAt: '2026-01-01 00:00:00', updatedAt: now() },
-        { id: 'u2', name: 'Ivan D.',   email: 'ivan@ivladoz.com',   role: 'admin',       systems: ['postflow','autoeditors'],              password: 'demo', status: 'active', lastLogin: '2026-03-24 09:30:05', loginCount: 156, createdAt: '2026-01-15 00:00:00', updatedAt: now() },
-        { id: 'u3', name: 'Olena M.',  email: 'olena@ivladoz.com',  role: 'admin',       systems: ['superboost'],                    password: 'demo', status: 'active', lastLogin: '2026-03-23 17:45:11', loginCount: 98,  createdAt: '2026-02-01 00:00:00', updatedAt: now() },
-        { id: 'u4', name: 'Andrii S.', email: 'andrii@ivladoz.com', role: 'manager',     systems: ['postflow'],                       password: 'demo', status: 'active', lastLogin: '2026-03-24 08:20:44', loginCount: 73,  createdAt: '2026-02-10 00:00:00', updatedAt: now() },
-        { id: 'u5', name: 'Marina P.', email: 'marina@ivladoz.com', role: 'manager',     systems: ['autoeditors','superboost'],           password: 'demo', status: 'active', lastLogin: '2026-03-23 16:10:33', loginCount: 61,  createdAt: '2026-02-15 00:00:00', updatedAt: now() },
-        { id: 'u6', name: 'Dmytro R.', email: 'dmytro@ivladoz.com', role: 'assistant',   systems: ['postflow'],                       password: 'demo', status: 'active', lastLogin: '2026-03-24 07:55:18', loginCount: 42,  createdAt: '2026-03-01 00:00:00', updatedAt: now() },
-        { id: 'u7', name: 'Taras H.',  email: 'taras@ivladoz.com',  role: 'manager',     systems: ['postflow','autoeditors','superboost'], password: 'demo', status: 'active', lastLogin: '2026-03-24 09:00:17', loginCount: 89,  createdAt: '2026-02-20 00:00:00', updatedAt: now() },
-        { id: 'u8', name: 'Katya L.',  email: 'katya@ivladoz.com',  role: 'assistant',   systems: ['autoeditors','superboost'],           password: 'demo', status: 'active', lastLogin: '2026-03-24 08:40:03', loginCount: 28,  createdAt: '2026-03-05 00:00:00', updatedAt: now() }
-      ];
-      _db.postflow_items = [
-        { id: 'b1', name: 'Tier-1 Main',  tier: 'T1', platforms: ['TikTok','YouTube Shorts'], postTimes: ['09:00','15:00','21:00'], videosPerAccount: 3, status: 'active', createdAt: '2026-02-01 00:00:00', updatedAt: now() },
-        { id: 'b2', name: 'Tier-2 Growth', tier: 'T2', platforms: ['TikTok','Instagram Reels'], postTimes: ['12:00','18:00'],       videosPerAccount: 2, status: 'active', createdAt: '2026-02-15 00:00:00', updatedAt: now() },
-        { id: 'b3', name: 'Tier-3 Test',   tier: 'T3', platforms: ['TikTok'],                   postTimes: ['10:00'],              videosPerAccount: 1, status: 'paused', createdAt: '2026-03-01 00:00:00', updatedAt: now() }
-      ];
-      _db.postflow_runs = [
-        { id: 'r1', batchId: 'b1', batchName: 'Tier-1 Main',  status: 'completed', startedAt: '2026-03-24 09:00:00', finishedAt: '2026-03-24 09:12:34', targetsQueued: 36, targetsPosted: 35, errors: 1 },
-        { id: 'r2', batchId: 'b2', batchName: 'Tier-2 Growth', status: 'completed', startedAt: '2026-03-24 12:00:00', finishedAt: '2026-03-24 12:08:11', targetsQueued: 24, targetsPosted: 24, errors: 0 },
-        { id: 'r3', batchId: 'b1', batchName: 'Tier-1 Main',  status: 'running',   startedAt: '2026-03-24 15:00:00', finishedAt: null,                  targetsQueued: 36, targetsPosted: 12, errors: 0 }
-      ];
-      _db.postflow_problems = [{ id: 'p1', batchId: 'b1', videoId: 'v_338', reason: 'Upload timeout after 3 retries', status: 'quarantined', detectedAt: '2026-03-24 09:11:05', releasedAt: null }];
-      _db.postflow_editors = [
-        { id: 'be1', name: 'Dmytro R.', telegram: '@dmytro_r', accounts: ['acc_tt_01','acc_tt_02','acc_yt_01'], createdAt: '2026-02-01 00:00:00', updatedAt: now() },
-        { id: 'be2', name: 'Katya L.',  telegram: '@katya_l',  accounts: ['acc_ig_01'],                        createdAt: '2026-03-05 00:00:00', updatedAt: now() }
-      ];
-      _db.postflow_alerts = [
-        { id: 'a1', type: 'error', message: 'Postflow B1 run had 1 failed target', severity: 'warning', createdAt: '2026-03-24 09:12:34', dismissed: false, dismissedAt: null },
-        { id: 'a2', type: 'info',  message: 'Tier-3 batch paused by admin',      severity: 'info',    createdAt: '2026-03-20 14:00:00', dismissed: true,  dismissedAt: '2026-03-20 15:00:00' }
-      ];
-      _db.autoeditors_editors = [
-        { id: 'ge1', name: 'Katya L.',  telegram: '@katya_l',  enabled: true,  maxActive: 5, activeCount: 2, createdAt: '2026-02-01 00:00:00', updatedAt: now() },
-        { id: 'ge2', name: 'Marina P.', telegram: '@marina_p', enabled: true,  maxActive: 3, activeCount: 1, createdAt: '2026-02-15 00:00:00', updatedAt: now() },
-        { id: 'ge3', name: 'Petro V.',  telegram: '@petro_v',  enabled: false, maxActive: 5, activeCount: 0, createdAt: '2026-03-01 00:00:00', updatedAt: now() }
-      ];
-      _db.autoeditors_assignments = [
-        { id: 'ga1', fileId: 'gdrive_f_001', editorId: 'ge1', folder: 'Incoming', status: 'in_progress', createdAt: '2026-03-24 08:00:00', updatedAt: now() },
-        { id: 'ga2', fileId: 'gdrive_f_002', editorId: 'ge1', folder: 'Incoming', status: 'completed',   createdAt: '2026-03-23 10:00:00', updatedAt: now() },
-        { id: 'ga3', fileId: 'gdrive_f_003', editorId: 'ge2', folder: 'Priority', status: 'pending',     createdAt: '2026-03-24 09:30:00', updatedAt: now() }
-      ];
-      _db.autoeditors_folders = [
-        { id: 'gf1', name: 'Incoming',  driveId: '1xABC_incoming',  type: 'source',  lastSync: '2026-03-24 09:15:00', createdAt: '2026-01-20 00:00:00', updatedAt: now() },
-        { id: 'gf2', name: 'Priority',  driveId: '1xDEF_priority',  type: 'source',  lastSync: '2026-03-24 09:15:00', createdAt: '2026-02-01 00:00:00', updatedAt: now() },
-        { id: 'gf3', name: 'Completed', driveId: '1xGHI_completed', type: 'archive', lastSync: '2026-03-24 09:15:00', createdAt: '2026-01-20 00:00:00', updatedAt: now() }
-      ];
-      _db.superboost_accounts = [
-        { id: 'sa1', username: '@boost_main', platform: 'telegram',  status: 'active',   dailyTasks: 12, createdAt: '2026-02-01 00:00:00', updatedAt: now() },
-        { id: 'sa2', username: '@boost_alt1', platform: 'telegram',  status: 'active',   dailyTasks: 8,  createdAt: '2026-02-15 00:00:00', updatedAt: now() },
-        { id: 'sa3', username: 'boost_ig',    platform: 'instagram', status: 'cooldown', dailyTasks: 0,  createdAt: '2026-03-01 00:00:00', updatedAt: now() }
-      ];
-      _db.superboost_tasks = [
-        { id: 'st1', type: 'subscribe', platform: 'telegram', accountId: 'sa1', assignedTo: 'sas1', status: 'completed', result: 'ok', createdAt: '2026-03-24 08:00:00', completedAt: '2026-03-24 08:05:00', updatedAt: now() },
-        { id: 'st2', type: 'like',      platform: 'telegram', accountId: 'sa1', assignedTo: null,   status: 'pending',   result: null, createdAt: '2026-03-24 09:00:00', completedAt: null, updatedAt: now() },
-        { id: 'st3', type: 'comment',   platform: 'telegram', accountId: 'sa2', assignedTo: 'sas1', status: 'assigned',  result: null, createdAt: '2026-03-24 09:30:00', completedAt: null, updatedAt: now() }
-      ];
-      _db.superboost_rules = [
-        { id: 'sr1', name: 'Daily sub limit',   condition: 'subs_today > 20',     action: 'pause_account', enabled: true, createdAt: '2026-02-01 00:00:00', updatedAt: now() },
-        { id: 'sr2', name: 'Cooldown enforcer', condition: 'last_action < 30min', action: 'delay_task',    enabled: true, createdAt: '2026-02-15 00:00:00', updatedAt: now() }
-      ];
-      _db.superboost_assistants = [
-        { id: 'sas1', name: 'Svitlana K.', telegram: '@svitlana_k', status: 'active', tasksCompleted: 47, createdAt: '2026-02-01 00:00:00', updatedAt: now() },
-        { id: 'sas2', name: 'Dmytro R.',   telegram: '@dmytro_r',   status: 'active', tasksCompleted: 23, createdAt: '2026-03-01 00:00:00', updatedAt: now() }
-      ];
-      _db.auditLog = [
-        { id: uid(), ts: '2026-03-24 10:15:22', user: 'Yehor K.', action: 'login',           system: 'auth',    target: '--',       details: 'Successful login via password' },
-        { id: uid(), ts: '2026-03-24 10:02:05', user: 'Ivan D.',  action: 'batch_triggered', system: 'postflow', target: 'Postflow B3', details: 'Manual trigger, 36 targets queued' },
-        { id: uid(), ts: '2026-03-24 09:45:11', user: 'Yehor K.', action: 'config_change',   system: 'postflow', target: 'DRY_RUN',  details: 'Changed from true to false' },
-        { id: uid(), ts: '2026-03-24 09:30:05', user: 'Ivan D.',  action: 'login',           system: 'auth',    target: '--',       details: 'Successful login via password' },
-        { id: uid(), ts: '2026-03-24 09:12:33', user: 'Olena M.', action: 'user_created',    system: 'auth',    target: 'Svitlana', details: 'New assistant account created' },
-        { id: uid(), ts: '2026-03-24 08:55:00', user: 'System',   action: 'batch_triggered', system: 'postflow', target: 'Postflow B1', details: 'Scheduled trigger, cron job' }
-      ];
+      // No demo data — production-ready clean state
       save(); _emit('data:changed', { action: 'seed' });
     }
   };
