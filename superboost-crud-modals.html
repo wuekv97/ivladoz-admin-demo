@@ -1,0 +1,325 @@
+<!-- ============================================================
+     SUPERBOOST CRUD — Modals + Dynamic Rendering + Filters
+     Accent: Amber #f59e0b
+     ============================================================ -->
+
+<!-- ===== MODAL BACKDROP ===== -->
+<div id="sb-modal-backdrop" class="fixed inset-0 z-[9998] bg-black/60 backdrop-blur-sm hidden" onclick="SB_UI.closeModal()"></div>
+
+<!-- ===== ACCOUNT MODAL ===== -->
+<div id="sb-modal-account" class="fixed inset-0 z-[9999] flex items-center justify-center hidden">
+  <div class="bg-slate-800 border border-slate-700/60 rounded-2xl w-full max-w-lg mx-4 shadow-2xl shadow-black/40" onclick="event.stopPropagation()">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-slate-700/50">
+      <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+        <i class="ph-bold ph-user-plus text-amber-400"></i>
+        <span id="sb-modal-account-title">Add Account</span>
+      </h3>
+      <button onclick="SB_UI.closeModal()" class="text-slate-400 hover:text-white transition-colors cursor-pointer p-1"><i class="ph-bold ph-x text-lg"></i></button>
+    </div>
+    <form id="sb-form-account" onsubmit="SB_UI.submitAccount(event)" class="px-6 py-5 space-y-4">
+      <input type="hidden" id="sb-acc-id" value="">
+
+      <!-- Username -->
+      <div>
+        <label class="block text-sm font-medium text-slate-400 mb-1.5">Username <span class="text-red-400">*</span></label>
+        <div class="relative">
+          <div class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none"><i class="ph-bold ph-at text-slate-500"></i></div>
+          <input id="sb-acc-username" type="text" required placeholder="username" class="w-full bg-slate-900/60 border border-slate-600/50 rounded-lg pl-10 pr-4 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-amber-500/60 focus:ring-1 focus:ring-amber-500/30 transition-colors">
+        </div>
+      </div>
+
+      <!-- Platform chips -->
+      <div>
+        <label class="block text-sm font-medium text-slate-400 mb-2">Platform <span class="text-red-400">*</span></label>
+        <div id="sb-acc-platform-chips" class="flex flex-wrap gap-2"></div>
+        <input type="hidden" id="sb-acc-platform" value="">
+      </div>
+
+      <!-- Telegram Handle -->
+      <div>
+        <label class="block text-sm font-medium text-slate-400 mb-1.5">Telegram Handle</label>
+        <div class="relative">
+          <div class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none"><i class="ph-bold ph-telegram-logo text-slate-500"></i></div>
+          <input id="sb-acc-telegram" type="text" placeholder="@handle" class="w-full bg-slate-900/60 border border-slate-600/50 rounded-lg pl-10 pr-4 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-amber-500/60 focus:ring-1 focus:ring-amber-500/30 transition-colors">
+        </div>
+      </div>
+
+      <!-- Workflow Status -->
+      <div>
+        <label class="block text-sm font-medium text-slate-400 mb-1.5">Workflow Status</label>
+        <select id="sb-acc-status" class="w-full bg-slate-900/60 border border-slate-600/50 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500/60 focus:ring-1 focus:ring-amber-500/30 transition-colors appearance-none cursor-pointer">
+          <option value="Not Done">Not Done</option>
+          <option value="In Process">In Process</option>
+          <option value="Done">Done</option>
+        </select>
+      </div>
+
+      <!-- Active toggle -->
+      <div class="flex items-center justify-between">
+        <span class="text-sm text-slate-400">Active</span>
+        <button type="button" id="sb-acc-active-toggle" onclick="SB_UI.toggleField('sb-acc-active')" class="w-11 h-6 rounded-full bg-emerald-500 relative transition-colors duration-200 focus:outline-none cursor-pointer">
+          <span class="absolute left-5 top-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-all duration-200"></span>
+        </button>
+        <input type="hidden" id="sb-acc-active" value="true">
+      </div>
+
+      <div class="flex gap-3 pt-2">
+        <button type="button" onclick="SB_UI.closeModal()" class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-300 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer">Cancel</button>
+        <button type="submit" class="flex-1 bg-amber-600 hover:bg-amber-500 text-white py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer flex items-center justify-center gap-2">
+          <i class="ph-bold ph-floppy-disk"></i> Save
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ===== RULE MODAL ===== -->
+<div id="sb-modal-rule" class="fixed inset-0 z-[9999] flex items-center justify-center hidden">
+  <div class="bg-slate-800 border border-slate-700/60 rounded-2xl w-full max-w-lg mx-4 shadow-2xl shadow-black/40" onclick="event.stopPropagation()">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-slate-700/50">
+      <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+        <i class="ph-bold ph-funnel text-amber-400"></i>
+        <span id="sb-modal-rule-title">Add Rule</span>
+      </h3>
+      <button onclick="SB_UI.closeModal()" class="text-slate-400 hover:text-white transition-colors cursor-pointer p-1"><i class="ph-bold ph-x text-lg"></i></button>
+    </div>
+    <form id="sb-form-rule" onsubmit="SB_UI.submitRule(event)" class="px-6 py-5 space-y-4">
+      <input type="hidden" id="sb-rule-id" value="">
+
+      <!-- Source Platform -->
+      <div>
+        <label class="block text-sm font-medium text-slate-400 mb-1.5">Source Platform <span class="text-red-400">*</span></label>
+        <select id="sb-rule-source" required class="w-full bg-slate-900/60 border border-slate-600/50 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500/60 focus:ring-1 focus:ring-amber-500/30 transition-colors appearance-none cursor-pointer">
+          <option value="">Select platform...</option>
+        </select>
+      </div>
+
+      <!-- Target Platform -->
+      <div>
+        <label class="block text-sm font-medium text-slate-400 mb-1.5">Target Platform <span class="text-red-400">*</span></label>
+        <select id="sb-rule-target" required class="w-full bg-slate-900/60 border border-slate-600/50 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500/60 focus:ring-1 focus:ring-amber-500/30 transition-colors appearance-none cursor-pointer">
+          <option value="">Select platform...</option>
+        </select>
+      </div>
+
+      <!-- Promotion Type -->
+      <div>
+        <label class="block text-sm font-medium text-slate-400 mb-1.5">Promotion Type <span class="text-red-400">*</span></label>
+        <input id="sb-rule-type" type="text" required placeholder="e.g. Follow, Like, Subscribe" class="w-full bg-slate-900/60 border border-slate-600/50 rounded-lg px-4 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-amber-500/60 focus:ring-1 focus:ring-amber-500/30 transition-colors">
+      </div>
+
+      <!-- Duration -->
+      <div>
+        <label class="block text-sm font-medium text-slate-400 mb-1.5">Default Duration (hours)</label>
+        <input id="sb-rule-duration" type="number" min="1" max="168" value="24" class="w-full bg-slate-900/60 border border-slate-600/50 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500/60 focus:ring-1 focus:ring-amber-500/30 transition-colors">
+      </div>
+
+      <!-- Random Allowed + Active -->
+      <div class="grid grid-cols-2 gap-4">
+        <div class="flex items-center justify-between">
+          <span class="text-sm text-slate-400">Random</span>
+          <button type="button" id="sb-rule-random-toggle" onclick="SB_UI.toggleField('sb-rule-random')" class="w-11 h-6 rounded-full bg-slate-600 relative transition-colors duration-200 focus:outline-none cursor-pointer">
+            <span class="absolute left-0.5 top-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-all duration-200"></span>
+          </button>
+          <input type="hidden" id="sb-rule-random" value="false">
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-sm text-slate-400">Active</span>
+          <button type="button" id="sb-rule-active-toggle" onclick="SB_UI.toggleField('sb-rule-active')" class="w-11 h-6 rounded-full bg-emerald-500 relative transition-colors duration-200 focus:outline-none cursor-pointer">
+            <span class="absolute left-5 top-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-all duration-200"></span>
+          </button>
+          <input type="hidden" id="sb-rule-active" value="true">
+        </div>
+      </div>
+
+      <div class="flex gap-3 pt-2">
+        <button type="button" onclick="SB_UI.closeModal()" class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-300 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer">Cancel</button>
+        <button type="submit" class="flex-1 bg-amber-600 hover:bg-amber-500 text-white py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer flex items-center justify-center gap-2">
+          <i class="ph-bold ph-floppy-disk"></i> Save
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ===== TASK MODAL ===== -->
+<div id="sb-modal-task" class="fixed inset-0 z-[9999] flex items-center justify-center hidden">
+  <div class="bg-slate-800 border border-slate-700/60 rounded-2xl w-full max-w-lg mx-4 shadow-2xl shadow-black/40" onclick="event.stopPropagation()">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-slate-700/50">
+      <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+        <i class="ph-bold ph-list-checks text-amber-400"></i>
+        <span id="sb-modal-task-title">Create Task</span>
+      </h3>
+      <button onclick="SB_UI.closeModal()" class="text-slate-400 hover:text-white transition-colors cursor-pointer p-1"><i class="ph-bold ph-x text-lg"></i></button>
+    </div>
+    <form id="sb-form-task" onsubmit="SB_UI.submitTask(event)" class="px-6 py-5 space-y-4">
+      <input type="hidden" id="sb-task-id" value="">
+
+      <!-- Source Account -->
+      <div>
+        <label class="block text-sm font-medium text-slate-400 mb-1.5">Source Account <span class="text-red-400">*</span></label>
+        <div class="relative">
+          <input id="sb-task-source-search" type="text" placeholder="Search account..." class="w-full bg-slate-900/60 border border-slate-600/50 rounded-lg px-4 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-amber-500/60 focus:ring-1 focus:ring-amber-500/30 transition-colors" oninput="SB_UI.filterAccountDropdown('source', this.value)" onfocus="SB_UI.showAccountDropdown('source')">
+          <div id="sb-task-source-dropdown" class="absolute left-0 right-0 top-full mt-1 bg-slate-900 border border-slate-700/60 rounded-lg max-h-40 overflow-y-auto z-10 hidden"></div>
+        </div>
+        <input type="hidden" id="sb-task-source-id" value="">
+      </div>
+
+      <!-- Target Account -->
+      <div>
+        <label class="block text-sm font-medium text-slate-400 mb-1.5">Target Account <span class="text-red-400">*</span></label>
+        <div class="relative">
+          <input id="sb-task-target-search" type="text" placeholder="Search account..." class="w-full bg-slate-900/60 border border-slate-600/50 rounded-lg px-4 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-amber-500/60 focus:ring-1 focus:ring-amber-500/30 transition-colors" oninput="SB_UI.filterAccountDropdown('target', this.value)" onfocus="SB_UI.showAccountDropdown('target')">
+          <div id="sb-task-target-dropdown" class="absolute left-0 right-0 top-full mt-1 bg-slate-900 border border-slate-700/60 rounded-lg max-h-40 overflow-y-auto z-10 hidden"></div>
+        </div>
+        <input type="hidden" id="sb-task-target-id" value="">
+      </div>
+
+      <!-- Rule -->
+      <div>
+        <label class="block text-sm font-medium text-slate-400 mb-1.5">Rule</label>
+        <select id="sb-task-rule" class="w-full bg-slate-900/60 border border-slate-600/50 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500/60 focus:ring-1 focus:ring-amber-500/30 transition-colors appearance-none cursor-pointer">
+          <option value="">Select rule...</option>
+        </select>
+      </div>
+
+      <!-- Assign To -->
+      <div>
+        <label class="block text-sm font-medium text-slate-400 mb-1.5">Assign To</label>
+        <select id="sb-task-assistant" class="w-full bg-slate-900/60 border border-slate-600/50 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500/60 focus:ring-1 focus:ring-amber-500/30 transition-colors appearance-none cursor-pointer">
+          <option value="">Unassigned</option>
+        </select>
+      </div>
+
+      <!-- Duration -->
+      <div>
+        <label class="block text-sm font-medium text-slate-400 mb-1.5">Duration (hours)</label>
+        <input id="sb-task-duration" type="number" min="1" max="168" value="24" class="w-full bg-slate-900/60 border border-slate-600/50 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500/60 focus:ring-1 focus:ring-amber-500/30 transition-colors">
+      </div>
+
+      <!-- Notes -->
+      <div>
+        <label class="block text-sm font-medium text-slate-400 mb-1.5">Notes</label>
+        <textarea id="sb-task-notes" rows="2" placeholder="Optional notes..." class="w-full bg-slate-900/60 border border-slate-600/50 rounded-lg px-4 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-amber-500/60 focus:ring-1 focus:ring-amber-500/30 transition-colors resize-none"></textarea>
+      </div>
+
+      <div class="flex gap-3 pt-2">
+        <button type="button" onclick="SB_UI.closeModal()" class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-300 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer">Cancel</button>
+        <button type="submit" class="flex-1 bg-amber-600 hover:bg-amber-500 text-white py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer flex items-center justify-center gap-2">
+          <i class="ph-bold ph-floppy-disk"></i> Save
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ===== ASSISTANT MODAL ===== -->
+<div id="sb-modal-assistant" class="fixed inset-0 z-[9999] flex items-center justify-center hidden">
+  <div class="bg-slate-800 border border-slate-700/60 rounded-2xl w-full max-w-lg mx-4 shadow-2xl shadow-black/40" onclick="event.stopPropagation()">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-slate-700/50">
+      <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+        <i class="ph-bold ph-headset text-amber-400"></i>
+        <span id="sb-modal-assistant-title">Add Assistant</span>
+      </h3>
+      <button onclick="SB_UI.closeModal()" class="text-slate-400 hover:text-white transition-colors cursor-pointer p-1"><i class="ph-bold ph-x text-lg"></i></button>
+    </div>
+    <form id="sb-form-assistant" onsubmit="SB_UI.submitAssistant(event)" class="px-6 py-5 space-y-4">
+      <input type="hidden" id="sb-asst-id" value="">
+
+      <!-- Name -->
+      <div>
+        <label class="block text-sm font-medium text-slate-400 mb-1.5">Name <span class="text-red-400">*</span></label>
+        <input id="sb-asst-name" type="text" required placeholder="Full name" class="w-full bg-slate-900/60 border border-slate-600/50 rounded-lg px-4 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-amber-500/60 focus:ring-1 focus:ring-amber-500/30 transition-colors">
+      </div>
+
+      <!-- Telegram Handle -->
+      <div>
+        <label class="block text-sm font-medium text-slate-400 mb-1.5">Telegram Handle <span class="text-red-400">*</span></label>
+        <div class="relative">
+          <div class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none"><i class="ph-bold ph-telegram-logo text-slate-500"></i></div>
+          <input id="sb-asst-telegram" type="text" required placeholder="@handle" class="w-full bg-slate-900/60 border border-slate-600/50 rounded-lg pl-10 pr-4 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-amber-500/60 focus:ring-1 focus:ring-amber-500/30 transition-colors">
+        </div>
+      </div>
+
+      <!-- Max Concurrent Tasks -->
+      <div>
+        <label class="block text-sm font-medium text-slate-400 mb-1.5">Max Concurrent Tasks</label>
+        <input id="sb-asst-max-tasks" type="number" min="1" max="50" value="10" class="w-full bg-slate-900/60 border border-slate-600/50 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500/60 focus:ring-1 focus:ring-amber-500/30 transition-colors">
+      </div>
+
+      <!-- Active toggle -->
+      <div class="flex items-center justify-between">
+        <span class="text-sm text-slate-400">Active</span>
+        <button type="button" id="sb-asst-active-toggle" onclick="SB_UI.toggleField('sb-asst-active')" class="w-11 h-6 rounded-full bg-emerald-500 relative transition-colors duration-200 focus:outline-none cursor-pointer">
+          <span class="absolute left-5 top-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-all duration-200"></span>
+        </button>
+        <input type="hidden" id="sb-asst-active" value="true">
+      </div>
+
+      <div class="flex gap-3 pt-2">
+        <button type="button" onclick="SB_UI.closeModal()" class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-300 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer">Cancel</button>
+        <button type="submit" class="flex-1 bg-amber-600 hover:bg-amber-500 text-white py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer flex items-center justify-center gap-2">
+          <i class="ph-bold ph-floppy-disk"></i> Save
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ===== CONFIRM DELETE MODAL ===== -->
+<div id="sb-modal-confirm" class="fixed inset-0 z-[9999] flex items-center justify-center hidden">
+  <div class="bg-slate-800 border border-slate-700/60 rounded-2xl w-full max-w-sm mx-4 shadow-2xl shadow-black/40" onclick="event.stopPropagation()">
+    <div class="px-6 py-5 text-center">
+      <div class="w-14 h-14 mx-auto mb-4 bg-red-500/10 rounded-full flex items-center justify-center">
+        <i class="ph-bold ph-trash text-red-400 text-2xl"></i>
+      </div>
+      <h3 class="text-lg font-semibold text-white mb-2">Confirm Delete</h3>
+      <p id="sb-confirm-msg" class="text-sm text-slate-400 mb-5">Are you sure you want to delete this item?</p>
+      <div class="flex gap-3">
+        <button onclick="SB_UI.closeModal()" class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-300 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer">Cancel</button>
+        <button id="sb-confirm-btn" onclick="SB_UI.confirmDelete()" class="flex-1 bg-red-600 hover:bg-red-500 text-white py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer flex items-center justify-center gap-2">
+          <i class="ph-bold ph-trash"></i> Delete
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TASK STATUS CHANGE MODAL ===== -->
+<div id="sb-modal-task-action" class="fixed inset-0 z-[9999] flex items-center justify-center hidden">
+  <div class="bg-slate-800 border border-slate-700/60 rounded-2xl w-full max-w-sm mx-4 shadow-2xl shadow-black/40" onclick="event.stopPropagation()">
+    <div class="px-6 py-4 border-b border-slate-700/50">
+      <h3 id="sb-task-action-title" class="text-lg font-semibold text-white flex items-center gap-2">
+        <i class="ph-bold ph-arrows-clockwise text-amber-400"></i> Update Task Status
+      </h3>
+    </div>
+    <div class="px-6 py-5 space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-slate-400 mb-1.5">Assign To</label>
+        <select id="sb-task-action-assistant" class="w-full bg-slate-900/60 border border-slate-600/50 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500/60 focus:ring-1 focus:ring-amber-500/30 transition-colors appearance-none cursor-pointer">
+          <option value="">Keep current</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-slate-400 mb-1.5">Note</label>
+        <textarea id="sb-task-action-note" rows="2" placeholder="Optional note..." class="w-full bg-slate-900/60 border border-slate-600/50 rounded-lg px-4 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-amber-500/60 focus:ring-1 focus:ring-amber-500/30 transition-colors resize-none"></textarea>
+      </div>
+      <input type="hidden" id="sb-task-action-id" value="">
+      <input type="hidden" id="sb-task-action-type" value="">
+      <div class="flex gap-3 pt-1">
+        <button onclick="SB_UI.closeModal()" class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-300 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer">Cancel</button>
+        <button onclick="SB_UI.executeTaskAction()" class="flex-1 bg-amber-600 hover:bg-amber-500 text-white py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer flex items-center justify-center gap-2">
+          <i class="ph-bold ph-check"></i> Confirm
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TOAST CONTAINER ===== -->
+<div id="sb-toast-container" class="fixed top-4 right-4 z-[10000] space-y-2 pointer-events-none"></div>
+
+
+<!-- ============================================================
+     SUPERBOOST CRUD JAVASCRIPT
+     ============================================================ -->

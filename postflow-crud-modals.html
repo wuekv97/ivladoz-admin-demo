@@ -1,0 +1,283 @@
+<!-- ============================================================
+     BATCHES CRUD — Modals, Slide-over, Dynamic Renderers
+     Insert before </body> in admin-v2.html
+     ============================================================ -->
+
+
+<!-- ===== MODAL BACKDROP (shared) ===== -->
+<div id="bc-modal-backdrop" class="fixed inset-0 z-[9990] bg-black/60 backdrop-blur-sm hidden transition-opacity duration-200" onclick="POSTFLOW_UI.closeAllModals()"></div>
+
+
+<!-- ===== ADD/EDIT BATCH MODAL ===== -->
+<div id="bc-batch-modal" class="fixed inset-0 z-[9991] flex items-center justify-center hidden">
+  <div class="bg-slate-800 border border-slate-700/60 rounded-2xl shadow-2xl shadow-black/40 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between px-6 py-4 border-b border-slate-700/50">
+      <h3 id="bc-batch-modal-title" class="text-lg font-semibold text-white flex items-center gap-2">
+        <i class="ph-bold ph-stack text-cyan-400"></i>
+        <span>Add Batch</span>
+      </h3>
+      <button onclick="POSTFLOW_UI.closeBatchModal()" class="text-slate-500 hover:text-white transition-colors cursor-pointer p-1 rounded-lg hover:bg-slate-700/50">
+        <i class="ph-bold ph-x text-lg"></i>
+      </button>
+    </div>
+
+    <!-- Body -->
+    <div class="px-6 py-5 space-y-5">
+
+      <!-- Hidden ID for edit mode -->
+      <input type="hidden" id="bc-batch-id" value="">
+
+      <!-- Name -->
+      <div>
+        <label class="block text-sm font-medium text-slate-400 mb-1.5">Batch Name <span class="text-red-400">*</span></label>
+        <input id="bc-batch-name" type="text" placeholder="e.g. B10" required
+          class="w-full bg-slate-900/60 border border-slate-600/50 rounded-lg px-4 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500/60 focus:ring-1 focus:ring-cyan-500/30 transition-colors">
+      </div>
+
+      <!-- Platforms -->
+      <div>
+        <label class="block text-sm font-medium text-slate-400 mb-2">Platforms</label>
+        <div id="bc-batch-platforms" class="flex flex-wrap gap-2">
+          <button type="button" data-platform="instagram" onclick="POSTFLOW_UI.togglePlatformChip(this)" class="bc-platform-chip px-3 py-1.5 rounded-lg text-xs font-medium border cursor-pointer transition-all duration-200 border-slate-600/50 bg-slate-900/40 text-slate-400 hover:border-slate-500">
+            <i class="ph-bold ph-instagram-logo mr-1"></i>Instagram
+          </button>
+          <button type="button" data-platform="x" onclick="POSTFLOW_UI.togglePlatformChip(this)" class="bc-platform-chip px-3 py-1.5 rounded-lg text-xs font-medium border cursor-pointer transition-all duration-200 border-slate-600/50 bg-slate-900/40 text-slate-400 hover:border-slate-500">
+            <i class="ph-bold ph-x-logo mr-1"></i>X
+          </button>
+          <button type="button" data-platform="facebook" onclick="POSTFLOW_UI.togglePlatformChip(this)" class="bc-platform-chip px-3 py-1.5 rounded-lg text-xs font-medium border cursor-pointer transition-all duration-200 border-slate-600/50 bg-slate-900/40 text-slate-400 hover:border-slate-500">
+            <i class="ph-bold ph-facebook-logo mr-1"></i>Facebook
+          </button>
+          <button type="button" data-platform="reddit" onclick="POSTFLOW_UI.togglePlatformChip(this)" class="bc-platform-chip px-3 py-1.5 rounded-lg text-xs font-medium border cursor-pointer transition-all duration-200 border-slate-600/50 bg-slate-900/40 text-slate-400 hover:border-slate-500">
+            <i class="ph-bold ph-reddit-logo mr-1"></i>Reddit
+          </button>
+          <button type="button" data-platform="threads" onclick="POSTFLOW_UI.togglePlatformChip(this)" class="bc-platform-chip px-3 py-1.5 rounded-lg text-xs font-medium border cursor-pointer transition-all duration-200 border-slate-600/50 bg-slate-900/40 text-slate-400 hover:border-slate-500">
+            <i class="ph-bold ph-threads-logo mr-1"></i>Threads
+          </button>
+          <button type="button" data-platform="snapchat" onclick="POSTFLOW_UI.togglePlatformChip(this)" class="bc-platform-chip px-3 py-1.5 rounded-lg text-xs font-medium border cursor-pointer transition-all duration-200 border-slate-600/50 bg-slate-900/40 text-slate-400 hover:border-slate-500">
+            <i class="ph-bold ph-snapchat-logo mr-1"></i>Snapchat
+          </button>
+        </div>
+      </div>
+
+      <!-- Post Times (tag input) -->
+      <div>
+        <label class="block text-sm font-medium text-slate-400 mb-1.5">Post Times (UTC)</label>
+        <div id="bc-batch-times-wrap" class="flex flex-wrap items-center gap-1.5 bg-slate-900/60 border border-slate-600/50 rounded-lg px-3 py-2 min-h-[42px] focus-within:border-cyan-500/60 focus-within:ring-1 focus-within:ring-cyan-500/30 transition-colors">
+          <!-- Tags rendered here -->
+          <input id="bc-batch-times-input" type="text" placeholder="Type time, press Enter (e.g. 22:00)"
+            class="flex-1 min-w-[160px] bg-transparent border-none outline-none text-sm text-white placeholder-slate-600 font-mono">
+        </div>
+        <p class="text-xs text-slate-600 mt-1">Press Enter to add, click x to remove</p>
+      </div>
+
+      <!-- Videos Per Account -->
+      <div>
+        <label class="block text-sm font-medium text-slate-400 mb-1.5">Videos Per Account</label>
+        <input id="bc-batch-vpa" type="number" min="1" max="50" value="3" placeholder="3"
+          class="w-full bg-slate-900/60 border border-slate-600/50 rounded-lg px-4 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500/60 focus:ring-1 focus:ring-cyan-500/30 transition-colors font-mono">
+      </div>
+
+      <!-- Coverage Required % -->
+      <div>
+        <label class="block text-sm font-medium text-slate-400 mb-1.5">Coverage Required %</label>
+        <div class="flex items-center gap-4">
+          <input id="bc-batch-coverage" type="range" min="0" max="100" value="100" oninput="document.getElementById('bc-batch-coverage-val').textContent=this.value+'%'"
+            class="flex-1 h-2 bg-slate-700 rounded-full appearance-none cursor-pointer accent-cyan-500">
+          <span id="bc-batch-coverage-val" class="font-mono text-sm text-cyan-400 w-12 text-right">100%</span>
+        </div>
+      </div>
+
+      <!-- Status Toggle -->
+      <div class="flex items-center justify-between">
+        <label class="text-sm font-medium text-slate-400">Status</label>
+        <div class="flex items-center gap-3">
+          <span id="bc-batch-status-label" class="text-sm font-mono text-emerald-400">active</span>
+          <button type="button" id="bc-batch-status-toggle" onclick="POSTFLOW_UI.toggleBatchStatus()"
+            class="w-11 h-6 rounded-full bg-emerald-500 relative transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 cursor-pointer">
+            <span class="absolute top-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-all duration-200" style="left:20px"></span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="px-6 py-4 border-t border-slate-700/50 flex items-center justify-end gap-3">
+      <button onclick="POSTFLOW_UI.closeBatchModal()" class="px-4 py-2 rounded-lg text-sm text-slate-400 hover:text-white hover:bg-slate-700/50 transition-colors cursor-pointer">Cancel</button>
+      <button onclick="POSTFLOW_UI.saveBatch()" class="px-5 py-2 rounded-lg text-sm font-medium bg-cyan-600 hover:bg-cyan-500 text-white transition-colors cursor-pointer flex items-center gap-2">
+        <i class="ph-bold ph-floppy-disk"></i>
+        <span id="bc-batch-save-label">Save Batch</span>
+      </button>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ===== ADD/EDIT EDITOR MODAL ===== -->
+<div id="bc-editor-modal" class="fixed inset-0 z-[9991] flex items-center justify-center hidden">
+  <div class="bg-slate-800 border border-slate-700/60 rounded-2xl shadow-2xl shadow-black/40 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between px-6 py-4 border-b border-slate-700/50">
+      <h3 id="bc-editor-modal-title" class="text-lg font-semibold text-white flex items-center gap-2">
+        <i class="ph-bold ph-user-circle-gear text-cyan-400"></i>
+        <span>Add Editor</span>
+      </h3>
+      <button onclick="POSTFLOW_UI.closeEditorModal()" class="text-slate-500 hover:text-white transition-colors cursor-pointer p-1 rounded-lg hover:bg-slate-700/50">
+        <i class="ph-bold ph-x text-lg"></i>
+      </button>
+    </div>
+
+    <!-- Body -->
+    <div class="px-6 py-5 space-y-5">
+
+      <input type="hidden" id="bc-editor-id" value="">
+
+      <!-- Name -->
+      <div>
+        <label class="block text-sm font-medium text-slate-400 mb-1.5">Name <span class="text-red-400">*</span></label>
+        <input id="bc-editor-name" type="text" placeholder="e.g. John Doe"
+          class="w-full bg-slate-900/60 border border-slate-600/50 rounded-lg px-4 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500/60 focus:ring-1 focus:ring-cyan-500/30 transition-colors">
+      </div>
+
+      <!-- Telegram Handle -->
+      <div>
+        <label class="block text-sm font-medium text-slate-400 mb-1.5">Telegram Handle</label>
+        <div class="relative">
+          <div class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none">
+            <span class="text-slate-500 text-sm font-mono">@</span>
+          </div>
+          <input id="bc-editor-telegram" type="text" placeholder="username"
+            class="w-full bg-slate-900/60 border border-slate-600/50 rounded-lg pl-8 pr-4 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500/60 focus:ring-1 focus:ring-cyan-500/30 transition-colors font-mono">
+        </div>
+      </div>
+
+      <!-- Assigned Batches -->
+      <div>
+        <label class="block text-sm font-medium text-slate-400 mb-2">Assigned Batches</label>
+        <div id="bc-editor-batches" class="space-y-2 max-h-40 overflow-y-auto pr-1">
+          <!-- Populated dynamically -->
+          <p class="text-xs text-slate-600">Loading batches...</p>
+        </div>
+      </div>
+
+      <!-- Max Active Videos -->
+      <div>
+        <label class="block text-sm font-medium text-slate-400 mb-1.5">Max Active Videos</label>
+        <input id="bc-editor-max-videos" type="number" min="1" max="100" value="10"
+          class="w-full bg-slate-900/60 border border-slate-600/50 rounded-lg px-4 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500/60 focus:ring-1 focus:ring-cyan-500/30 transition-colors font-mono">
+      </div>
+
+      <!-- Status Toggle -->
+      <div class="flex items-center justify-between">
+        <label class="text-sm font-medium text-slate-400">Status</label>
+        <div class="flex items-center gap-3">
+          <span id="bc-editor-status-label" class="text-sm font-mono text-emerald-400">active</span>
+          <button type="button" id="bc-editor-status-toggle" onclick="POSTFLOW_UI.toggleEditorStatus()"
+            class="w-11 h-6 rounded-full bg-emerald-500 relative transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 cursor-pointer">
+            <span class="absolute top-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-all duration-200" style="left:20px"></span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="px-6 py-4 border-t border-slate-700/50 flex items-center justify-end gap-3">
+      <button onclick="POSTFLOW_UI.closeEditorModal()" class="px-4 py-2 rounded-lg text-sm text-slate-400 hover:text-white hover:bg-slate-700/50 transition-colors cursor-pointer">Cancel</button>
+      <button onclick="POSTFLOW_UI.saveEditor()" class="px-5 py-2 rounded-lg text-sm font-medium bg-cyan-600 hover:bg-cyan-500 text-white transition-colors cursor-pointer flex items-center gap-2">
+        <i class="ph-bold ph-floppy-disk"></i>
+        <span id="bc-editor-save-label">Save Editor</span>
+      </button>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ===== BATCH DETAIL SLIDE-OVER ===== -->
+<div id="bc-slideover-backdrop" class="fixed inset-0 z-[9988] bg-black/50 hidden transition-opacity duration-200" onclick="POSTFLOW_UI.closeSlideOver()"></div>
+<div id="bc-slideover" class="fixed top-0 right-0 z-[9989] h-full w-full max-w-md bg-slate-800 border-l border-slate-700/60 shadow-2xl shadow-black/50 transform translate-x-full transition-transform duration-300 overflow-y-auto">
+
+  <!-- Header -->
+  <div class="sticky top-0 z-10 bg-slate-800/95 backdrop-blur border-b border-slate-700/50 px-6 py-4 flex items-center justify-between">
+    <h3 id="bc-slide-title" class="text-lg font-semibold text-white flex items-center gap-2">
+      <i class="ph-bold ph-stack text-cyan-400"></i>
+      <span>Batch Detail</span>
+    </h3>
+    <button onclick="POSTFLOW_UI.closeSlideOver()" class="text-slate-500 hover:text-white transition-colors cursor-pointer p-1.5 rounded-lg hover:bg-slate-700/50">
+      <i class="ph-bold ph-x text-lg"></i>
+    </button>
+  </div>
+
+  <!-- Content -->
+  <div id="bc-slide-content" class="px-6 py-5 space-y-6">
+    <!-- Populated dynamically -->
+  </div>
+
+</div>
+
+
+<!-- ===== DELETE CONFIRMATION MODAL ===== -->
+<div id="bc-confirm-modal" class="fixed inset-0 z-[9992] flex items-center justify-center hidden">
+  <div class="bg-slate-800 border border-slate-700/60 rounded-2xl shadow-2xl shadow-black/40 w-full max-w-sm mx-4" onclick="event.stopPropagation()">
+    <div class="px-6 py-5 text-center">
+      <div class="w-12 h-12 bg-red-500/15 rounded-xl flex items-center justify-center mx-auto mb-4">
+        <i class="ph-bold ph-trash text-red-400 text-2xl"></i>
+      </div>
+      <h3 class="text-lg font-semibold text-white mb-2">Confirm Delete</h3>
+      <p id="bc-confirm-text" class="text-sm text-slate-400">Are you sure you want to delete this item? This action cannot be undone.</p>
+    </div>
+    <div class="px-6 py-4 border-t border-slate-700/50 flex items-center justify-end gap-3">
+      <button onclick="POSTFLOW_UI.closeConfirmModal()" class="px-4 py-2 rounded-lg text-sm text-slate-400 hover:text-white hover:bg-slate-700/50 transition-colors cursor-pointer">Cancel</button>
+      <button id="bc-confirm-btn" onclick="POSTFLOW_UI.executeDelete()" class="px-5 py-2 rounded-lg text-sm font-medium bg-red-600 hover:bg-red-500 text-white transition-colors cursor-pointer flex items-center gap-2">
+        <i class="ph-bold ph-trash"></i> Delete
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ===== CREATE ALERT MODAL ===== -->
+<div id="bc-alert-modal" class="fixed inset-0 z-[9991] flex items-center justify-center hidden">
+  <div class="bg-slate-800 border border-slate-700/60 rounded-2xl shadow-2xl shadow-black/40 w-full max-w-lg mx-4" onclick="event.stopPropagation()">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-slate-700/50">
+      <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+        <i class="ph-bold ph-bell-ringing text-cyan-400"></i>
+        <span>Create Alert</span>
+      </h3>
+      <button onclick="POSTFLOW_UI.closeAlertModal()" class="text-slate-500 hover:text-white transition-colors cursor-pointer p-1 rounded-lg hover:bg-slate-700/50">
+        <i class="ph-bold ph-x text-lg"></i>
+      </button>
+    </div>
+    <div class="px-6 py-5 space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-slate-400 mb-1.5">Severity</label>
+        <select id="bc-alert-severity" class="w-full bg-slate-900/60 border border-slate-600/50 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500/60 transition-colors cursor-pointer">
+          <option value="critical">Critical</option>
+          <option value="warning" selected>Warning</option>
+          <option value="info">Info</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-slate-400 mb-1.5">Message <span class="text-red-400">*</span></label>
+        <textarea id="bc-alert-message" rows="3" placeholder="Describe the alert..."
+          class="w-full bg-slate-900/60 border border-slate-600/50 rounded-lg px-4 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500/60 focus:ring-1 focus:ring-cyan-500/30 transition-colors resize-none"></textarea>
+      </div>
+    </div>
+    <div class="px-6 py-4 border-t border-slate-700/50 flex items-center justify-end gap-3">
+      <button onclick="POSTFLOW_UI.closeAlertModal()" class="px-4 py-2 rounded-lg text-sm text-slate-400 hover:text-white hover:bg-slate-700/50 transition-colors cursor-pointer">Cancel</button>
+      <button onclick="POSTFLOW_UI.createAlert()" class="px-5 py-2 rounded-lg text-sm font-medium bg-cyan-600 hover:bg-cyan-500 text-white transition-colors cursor-pointer flex items-center gap-2">
+        <i class="ph-bold ph-bell-ringing"></i> Create Alert
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     POSTFLOW_UI JAVASCRIPT
+     ============================================================ -->

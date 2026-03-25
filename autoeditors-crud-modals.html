@@ -1,0 +1,344 @@
+<!-- ============================================================
+     Autoeditors CRUD UI
+     Complete dynamic rendering + modals for editors, folders,
+     assignments, logs, config, and dashboard.
+     Accent: Violet #8b5cf6
+     ============================================================ -->
+
+<!-- ===== MODAL: Add/Edit Editor ===== -->
+<div id="autoeditors-modal-editor" class="fixed inset-0 z-[9000] hidden">
+  <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="AUTOEDITORS_UI.closeModal('editor')"></div>
+  <div class="relative flex items-center justify-center min-h-screen p-4">
+    <div class="bg-slate-800 border border-slate-700/60 rounded-2xl w-full max-w-lg shadow-2xl shadow-black/40 relative">
+      <!-- Header -->
+      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-700/50">
+        <h3 id="autoeditors-modal-editor-title" class="text-lg font-semibold text-white flex items-center gap-2">
+          <i class="ph-bold ph-user-plus text-violet-400"></i>
+          Add Editor
+        </h3>
+        <button onclick="AUTOEDITORS_UI.closeModal('editor')" class="text-slate-400 hover:text-white transition-colors cursor-pointer p-1">
+          <i class="ph-bold ph-x text-lg"></i>
+        </button>
+      </div>
+      <!-- Body -->
+      <form id="autoeditors-form-editor" onsubmit="AUTOEDITORS_UI.submitEditor(event)" class="px-6 py-5 space-y-4">
+        <input type="hidden" id="autoeditors-editor-id" value="">
+
+        <!-- Display Name -->
+        <div>
+          <label class="block text-sm font-medium text-slate-400 mb-1.5">Display Name</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none">
+              <i class="ph-bold ph-user text-slate-500"></i>
+            </div>
+            <input id="autoeditors-editor-name" type="text" required placeholder="e.g. Andrew"
+              class="w-full bg-slate-900/60 border border-slate-600/50 rounded-lg pl-10 pr-4 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/30 transition-colors">
+          </div>
+        </div>
+
+        <!-- Telegram Handle -->
+        <div>
+          <label class="block text-sm font-medium text-slate-400 mb-1.5">Telegram Handle</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none">
+              <span class="text-slate-500 text-sm font-mono">@</span>
+            </div>
+            <input id="autoeditors-editor-tg-handle" type="text" required placeholder="username"
+              class="w-full bg-slate-900/60 border border-slate-600/50 rounded-lg pl-10 pr-4 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/30 transition-colors font-mono">
+          </div>
+        </div>
+
+        <!-- Telegram User ID -->
+        <div>
+          <label class="block text-sm font-medium text-slate-400 mb-1.5">Telegram User ID</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none">
+              <i class="ph-bold ph-identification-badge text-slate-500"></i>
+            </div>
+            <input id="autoeditors-editor-tg-id" type="number" placeholder="e.g. 123456789"
+              class="w-full bg-slate-900/60 border border-slate-600/50 rounded-lg pl-10 pr-4 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/30 transition-colors font-mono">
+          </div>
+        </div>
+
+        <!-- Viewer Email -->
+        <div>
+          <label class="block text-sm font-medium text-slate-400 mb-1.5">Viewer Email (Google Drive)</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none">
+              <i class="ph-bold ph-envelope-simple text-slate-500"></i>
+            </div>
+            <input id="autoeditors-editor-email" type="email" placeholder="editor@gmail.com"
+              class="w-full bg-slate-900/60 border border-slate-600/50 rounded-lg pl-10 pr-4 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/30 transition-colors font-mono">
+          </div>
+        </div>
+
+        <!-- Enabled Toggle -->
+        <div class="flex items-center justify-between">
+          <div>
+            <label class="text-sm font-medium text-slate-400">Enabled</label>
+            <p class="text-xs text-slate-500">Receive new assignments via round-robin</p>
+          </div>
+          <button type="button" id="autoeditors-editor-enabled-toggle" onclick="AUTOEDITORS_UI.toggleSwitch(this)"
+            class="w-11 h-6 rounded-full bg-emerald-500 relative transition-colors duration-200 focus:outline-none cursor-pointer" data-value="true">
+            <span class="absolute left-5 top-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-all duration-200"></span>
+          </button>
+        </div>
+
+        <!-- Max Active Assignments -->
+        <div>
+          <label class="block text-sm font-medium text-slate-400 mb-1.5">Max Active Assignments</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none">
+              <i class="ph-bold ph-stack text-slate-500"></i>
+            </div>
+            <input id="autoeditors-editor-max-active" type="number" min="1" max="20" value="3" required
+              class="w-full bg-slate-900/60 border border-slate-600/50 rounded-lg pl-10 pr-4 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/30 transition-colors font-mono">
+          </div>
+        </div>
+
+        <!-- Source Folders (multi-select) -->
+        <div>
+          <label class="block text-sm font-medium text-slate-400 mb-1.5">Allowed Source Folders</label>
+          <div id="autoeditors-editor-sources-list" class="flex flex-wrap gap-2 min-h-[40px] bg-slate-900/60 border border-slate-600/50 rounded-lg p-3">
+            <!-- Populated dynamically -->
+            <span class="text-xs text-slate-600 italic">Loading folders...</span>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-700/50">
+          <button type="button" onclick="AUTOEDITORS_UI.closeModal('editor')"
+            class="px-4 py-2 rounded-lg text-sm text-slate-400 hover:text-white hover:bg-slate-700 transition-colors cursor-pointer">
+            Cancel
+          </button>
+          <button type="submit" id="autoeditors-editor-submit-btn"
+            class="bg-violet-600 hover:bg-violet-500 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors duration-200 cursor-pointer flex items-center gap-2">
+            <i class="ph-bold ph-floppy-disk"></i>
+            <span>Save Editor</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<!-- ===== MODAL: Add/Edit Folder ===== -->
+<div id="autoeditors-modal-folder" class="fixed inset-0 z-[9000] hidden">
+  <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="AUTOEDITORS_UI.closeModal('folder')"></div>
+  <div class="relative flex items-center justify-center min-h-screen p-4">
+    <div class="bg-slate-800 border border-slate-700/60 rounded-2xl w-full max-w-lg shadow-2xl shadow-black/40 relative">
+      <!-- Header -->
+      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-700/50">
+        <h3 id="autoeditors-modal-folder-title" class="text-lg font-semibold text-white flex items-center gap-2">
+          <i class="ph-bold ph-folder-plus text-violet-400"></i>
+          Add Folder
+        </h3>
+        <button onclick="AUTOEDITORS_UI.closeModal('folder')" class="text-slate-400 hover:text-white transition-colors cursor-pointer p-1">
+          <i class="ph-bold ph-x text-lg"></i>
+        </button>
+      </div>
+      <!-- Body -->
+      <form id="autoeditors-form-folder" onsubmit="AUTOEDITORS_UI.submitFolder(event)" class="px-6 py-5 space-y-4">
+        <input type="hidden" id="autoeditors-folder-edit-key" value="">
+
+        <!-- Folder Name -->
+        <div>
+          <label class="block text-sm font-medium text-slate-400 mb-1.5">Folder Name</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none">
+              <i class="ph-bold ph-folder text-slate-500"></i>
+            </div>
+            <input id="autoeditors-folder-name" type="text" required placeholder="e.g. rawfolder1"
+              class="w-full bg-slate-900/60 border border-slate-600/50 rounded-lg pl-10 pr-4 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/30 transition-colors">
+          </div>
+        </div>
+
+        <!-- Google Drive Folder ID -->
+        <div>
+          <label class="block text-sm font-medium text-slate-400 mb-1.5">Google Drive Folder ID</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none">
+              <i class="ph-bold ph-link text-slate-500"></i>
+            </div>
+            <input id="autoeditors-folder-drive-id" type="text" required placeholder="1AbCdEfGhIjKlMnOpQrStUvWxYz"
+              class="w-full bg-slate-900/60 border border-slate-600/50 rounded-lg pl-10 pr-4 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/30 transition-colors font-mono">
+          </div>
+          <p class="text-xs text-slate-500 mt-1 flex items-center gap-1">
+            <i class="ph-bold ph-info text-slate-600"></i>
+            Paste a Drive folder URL and the ID will be extracted automatically.
+          </p>
+        </div>
+
+        <!-- Folder Type -->
+        <div>
+          <label class="block text-sm font-medium text-slate-400 mb-1.5">Folder Type</label>
+          <select id="autoeditors-folder-type"
+            class="w-full bg-slate-900/60 border border-slate-600/50 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/30 transition-colors cursor-pointer appearance-none"
+            style="background-image: url('data:image/svg+xml;charset=UTF-8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%2212%22 viewBox=%220 0 12 12%22%3E%3Cpath fill=%22%2394a3b8%22 d=%22M2 4l4 4 4-4%22/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 12px center;">
+            <option value="raw">Raw (intake)</option>
+            <option value="completed">Completed (output)</option>
+            <option value="reference">Reference</option>
+          </select>
+        </div>
+
+        <!-- Auto-Sync Toggle -->
+        <div class="flex items-center justify-between">
+          <div>
+            <label class="text-sm font-medium text-slate-400">Auto-Sync Enabled</label>
+            <p class="text-xs text-slate-500">Periodically scan for new files</p>
+          </div>
+          <button type="button" id="autoeditors-folder-sync-toggle" onclick="AUTOEDITORS_UI.toggleSwitch(this)"
+            class="w-11 h-6 rounded-full bg-emerald-500 relative transition-colors duration-200 focus:outline-none cursor-pointer" data-value="true">
+            <span class="absolute left-5 top-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-all duration-200"></span>
+          </button>
+        </div>
+
+        <!-- Sync Interval -->
+        <div>
+          <label class="block text-sm font-medium text-slate-400 mb-1.5">Sync Interval (seconds)</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none">
+              <i class="ph-bold ph-timer text-slate-500"></i>
+            </div>
+            <input id="autoeditors-folder-sync-interval" type="number" min="10" value="30"
+              class="w-full bg-slate-900/60 border border-slate-600/50 rounded-lg pl-10 pr-4 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/30 transition-colors font-mono">
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-700/50">
+          <button type="button" onclick="AUTOEDITORS_UI.closeModal('folder')"
+            class="px-4 py-2 rounded-lg text-sm text-slate-400 hover:text-white hover:bg-slate-700 transition-colors cursor-pointer">
+            Cancel
+          </button>
+          <button type="submit" id="autoeditors-folder-submit-btn"
+            class="bg-violet-600 hover:bg-violet-500 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors duration-200 cursor-pointer flex items-center gap-2">
+            <i class="ph-bold ph-floppy-disk"></i>
+            <span>Save Folder</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<!-- ===== MODAL: Create Assignment ===== -->
+<div id="autoeditors-modal-assignment" class="fixed inset-0 z-[9000] hidden">
+  <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="AUTOEDITORS_UI.closeModal('assignment')"></div>
+  <div class="relative flex items-center justify-center min-h-screen p-4">
+    <div class="bg-slate-800 border border-slate-700/60 rounded-2xl w-full max-w-lg shadow-2xl shadow-black/40 relative">
+      <!-- Header -->
+      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-700/50">
+        <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+          <i class="ph-bold ph-user-focus text-violet-400"></i>
+          Create Assignment
+        </h3>
+        <button onclick="AUTOEDITORS_UI.closeModal('assignment')" class="text-slate-400 hover:text-white transition-colors cursor-pointer p-1">
+          <i class="ph-bold ph-x text-lg"></i>
+        </button>
+      </div>
+      <!-- Body -->
+      <form id="autoeditors-form-assignment" onsubmit="AUTOEDITORS_UI.submitAssignment(event)" class="px-6 py-5 space-y-4">
+
+        <!-- Select File -->
+        <div>
+          <label class="block text-sm font-medium text-slate-400 mb-1.5">Select File</label>
+          <select id="autoeditors-assign-file" required
+            class="w-full bg-slate-900/60 border border-slate-600/50 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/30 transition-colors cursor-pointer appearance-none font-mono"
+            style="background-image: url('data:image/svg+xml;charset=UTF-8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%2212%22 viewBox=%220 0 12 12%22%3E%3Cpath fill=%22%2394a3b8%22 d=%22M2 4l4 4 4-4%22/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 12px center;">
+            <option value="">-- Select unassigned file --</option>
+          </select>
+        </div>
+
+        <!-- Select Editor -->
+        <div>
+          <label class="block text-sm font-medium text-slate-400 mb-1.5">Assign to Editor</label>
+          <select id="autoeditors-assign-editor" required
+            class="w-full bg-slate-900/60 border border-slate-600/50 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/30 transition-colors cursor-pointer appearance-none"
+            style="background-image: url('data:image/svg+xml;charset=UTF-8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%2212%22 viewBox=%220 0 12 12%22%3E%3Cpath fill=%22%2394a3b8%22 d=%22M2 4l4 4 4-4%22/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 12px center;">
+            <option value="">-- Select editor --</option>
+          </select>
+        </div>
+
+        <!-- Priority -->
+        <div>
+          <label class="block text-sm font-medium text-slate-400 mb-1.5">Priority</label>
+          <div class="flex gap-2" id="autoeditors-assign-priority-group">
+            <button type="button" data-priority="low" onclick="AUTOEDITORS_UI.setPriority('low')"
+              class="px-4 py-1.5 rounded-lg text-xs font-medium transition-colors duration-200 cursor-pointer text-slate-400 bg-slate-900/60 border border-slate-600/50 hover:border-slate-500">
+              Low
+            </button>
+            <button type="button" data-priority="normal" onclick="AUTOEDITORS_UI.setPriority('normal')"
+              class="px-4 py-1.5 rounded-lg text-xs font-medium transition-colors duration-200 cursor-pointer bg-violet-600 text-white">
+              Normal
+            </button>
+            <button type="button" data-priority="high" onclick="AUTOEDITORS_UI.setPriority('high')"
+              class="px-4 py-1.5 rounded-lg text-xs font-medium transition-colors duration-200 cursor-pointer text-slate-400 bg-slate-900/60 border border-slate-600/50 hover:border-slate-500">
+              High
+            </button>
+          </div>
+          <input type="hidden" id="autoeditors-assign-priority-value" value="normal">
+        </div>
+
+        <!-- Notes -->
+        <div>
+          <label class="block text-sm font-medium text-slate-400 mb-1.5">Notes</label>
+          <textarea id="autoeditors-assign-notes" rows="3" placeholder="Optional notes for the editor..."
+            class="w-full bg-slate-900/60 border border-slate-600/50 rounded-lg px-4 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/30 transition-colors resize-none"></textarea>
+        </div>
+
+        <!-- Footer -->
+        <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-700/50">
+          <button type="button" onclick="AUTOEDITORS_UI.closeModal('assignment')"
+            class="px-4 py-2 rounded-lg text-sm text-slate-400 hover:text-white hover:bg-slate-700 transition-colors cursor-pointer">
+            Cancel
+          </button>
+          <button type="submit"
+            class="bg-violet-600 hover:bg-violet-500 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors duration-200 cursor-pointer flex items-center gap-2">
+            <i class="ph-bold ph-user-focus"></i>
+            <span>Assign</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<!-- ===== MODAL: Confirm Delete ===== -->
+<div id="autoeditors-modal-confirm" class="fixed inset-0 z-[9100] hidden">
+  <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="AUTOEDITORS_UI.closeModal('confirm')"></div>
+  <div class="relative flex items-center justify-center min-h-screen p-4">
+    <div class="bg-slate-800 border border-red-500/40 rounded-2xl w-full max-w-sm shadow-2xl shadow-black/40 relative">
+      <div class="px-6 py-5 text-center">
+        <div class="w-14 h-14 bg-red-500/15 rounded-full flex items-center justify-center mx-auto mb-4">
+          <i class="ph-bold ph-warning text-red-400 text-2xl"></i>
+        </div>
+        <h3 class="text-lg font-semibold text-white mb-2" id="autoeditors-confirm-title">Confirm Delete</h3>
+        <p class="text-sm text-slate-400 mb-5" id="autoeditors-confirm-message">Are you sure? This action cannot be undone.</p>
+        <div class="flex gap-3 justify-center">
+          <button onclick="AUTOEDITORS_UI.closeModal('confirm')"
+            class="px-5 py-2 rounded-lg text-sm text-slate-400 hover:text-white hover:bg-slate-700 transition-colors cursor-pointer">
+            Cancel
+          </button>
+          <button id="autoeditors-confirm-action-btn" onclick="AUTOEDITORS_UI.executeConfirmedAction()"
+            class="bg-red-600 hover:bg-red-500 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors duration-200 cursor-pointer flex items-center gap-2">
+            <i class="ph-bold ph-trash"></i>
+            <span>Delete</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ===== TOAST CONTAINER ===== -->
+<div id="autoeditors-toast-container" class="fixed top-4 right-4 z-[9500] space-y-2 pointer-events-none"></div>
+
+
+<!-- ============================================================
+     GDRIVE CRUD JAVASCRIPT
+     ============================================================ -->

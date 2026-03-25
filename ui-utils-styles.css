@@ -1,0 +1,90 @@
+  /* --- Toast animations --- */
+  @keyframes toast-slide-in {
+    from { transform: translateX(100%); opacity: 0; }
+    to   { transform: translateX(0);    opacity: 1; }
+  }
+  @keyframes toast-slide-out {
+    from { transform: translateX(0);    opacity: 1; }
+    to   { transform: translateX(100%); opacity: 0; }
+  }
+  .toast-enter {
+    animation: toast-slide-in 250ms ease-out forwards;
+  }
+  .toast-exit {
+    animation: toast-slide-out 200ms ease-in forwards;
+  }
+
+  /* --- Confirm modal animation --- */
+  @keyframes confirm-fade-in {
+    from { opacity: 0; transform: scale(0.95); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  @keyframes confirm-fade-out {
+    from { opacity: 1; transform: scale(1); }
+    to   { opacity: 0; transform: scale(0.95); }
+  }
+  .confirm-enter {
+    animation: confirm-fade-in 200ms ease-out forwards;
+  }
+  .confirm-exit {
+    animation: confirm-fade-out 150ms ease-in forwards;
+  }
+
+  /* --- Loading spinner ring --- */
+  @keyframes spin-ring {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+  .loading-ring {
+    animation: spin-ring 0.8s linear infinite;
+    border-width: 3px;
+  }
+
+  /* --- Inline pulsing dots --- */
+  @keyframes pulse-dot {
+    0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+    40%           { opacity: 1;   transform: scale(1); }
+  }
+  .loading-dots span {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #94a3b8;
+    animation: pulse-dot 1.2s ease-in-out infinite;
+  }
+  .loading-dots span:nth-child(2) { animation-delay: 0.15s; }
+  .loading-dots span:nth-child(3) { animation-delay: 0.3s; }
+
+  /* --- Empty state dashed border --- */
+  .empty-state-box {
+    border: 2px dashed #334155;
+    border-radius: 1rem;
+  }
+
+  /* --- Table sort indicators --- */
+  .sort-icon::after {
+    content: '';
+    display: inline-block;
+    width: 0;
+    height: 0;
+    margin-left: 4px;
+    vertical-align: middle;
+  }
+  .sort-asc::after {
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-bottom: 5px solid #94a3b8;
+  }
+  .sort-desc::after {
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 5px solid #94a3b8;
+  }
+
+  /* --- Filter pill scroll container --- */
+  .filter-pills {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .filter-pills::-webkit-scrollbar { display: none; }
