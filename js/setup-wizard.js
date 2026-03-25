@@ -120,6 +120,13 @@ const SETUP_WIZARD = (() => {
       case 3: container.innerHTML = stepSuperboost(cfg); break;
       case 4: container.innerHTML = stepReview(cfg); break;
     }
+
+    // Attach live token checkers after DOM is ready
+    requestAnimationFrame(function() {
+      if (step === 1) attachTokenChecker('wiz-pf-bot-token', 'wiz-pf-bot-info', 'cyan');
+      if (step === 2) attachTokenChecker('wiz-ae-bot-token', 'wiz-ae-bot-info', 'violet');
+      if (step === 3) attachTokenChecker('wiz-sb-bot-token', 'wiz-sb-bot-info', 'amber');
+    });
   }
 
   // ---- Step templates ----
@@ -228,6 +235,7 @@ const SETUP_WIZARD = (() => {
       <p class="text-sm text-slate-400 mb-6">Configure the batch posting bot that schedules and publishes content across platforms.</p>
       <div class="space-y-4">
         ${inputField('wiz-pf-bot-token', 'Telegram Bot Token', c.telegram_bot_token, { placeholder: '123456:ABC-DEF...', icon: 'ph-telegram-logo', required: true, hint: 'Get from @BotFather on Telegram' })}
+        <div id="wiz-pf-bot-info" class="mt-2 hidden"></div>
         <div class="grid grid-cols-2 gap-4">
           ${inputField('wiz-pf-interval', 'Post Interval (sec)', c.post_interval_seconds, { type: 'number', icon: 'ph-timer', placeholder: '120' })}
           ${inputField('wiz-pf-retries', 'Max Retries', c.max_retries, { type: 'number', icon: 'ph-arrow-counter-clockwise', placeholder: '3' })}
@@ -262,6 +270,7 @@ const SETUP_WIZARD = (() => {
       <p class="text-sm text-slate-400 mb-6">Configure the Google Drive editor assignment bot that manages file editing workflows.</p>
       <div class="space-y-4">
         ${inputField('wiz-ae-bot-token', 'Telegram Bot Token', c.telegram_bot_token, { placeholder: '123456:ABC-DEF...', icon: 'ph-telegram-logo', required: true, hint: 'Bot for editor notifications' })}
+        <div id="wiz-ae-bot-info" class="mt-2 hidden"></div>
         ${inputField('wiz-ae-api-key', 'Google Drive API Key', c.google_drive_api_key, { placeholder: 'AIzaSy...', icon: 'ph-key', required: true, hint: 'From Google Cloud Console' })}
         ${inputField('wiz-ae-service-email', 'Service Account Email', c.google_service_account_email, { placeholder: 'bot@project.iam.gserviceaccount.com', icon: 'ph-envelope', hint: 'Google service account for Drive access' })}
         ${inputField('wiz-ae-sheets-id', 'Google Sheets ID', c.google_sheets_id, { placeholder: '1BxiM...', icon: 'ph-table', hint: 'Tracking spreadsheet ID' })}
@@ -291,6 +300,7 @@ const SETUP_WIZARD = (() => {
       <p class="text-sm text-slate-400 mb-6">Configure the promotion workflow bot for scheduling boost tasks across platforms.</p>
       <div class="space-y-4">
         ${inputField('wiz-sb-bot-token', 'Telegram Bot Token', c.telegram_bot_token, { placeholder: '123456:ABC-DEF...', icon: 'ph-telegram-logo', required: true, hint: 'Grammy bot token' })}
+        <div id="wiz-sb-bot-info" class="mt-2 hidden"></div>
         <div class="grid grid-cols-2 gap-4">
           ${inputField('wiz-sb-max-tasks', 'Max Daily Tasks', c.max_daily_tasks, { type: 'number', icon: 'ph-list-checks', placeholder: '50' })}
           ${inputField('wiz-sb-cooldown', 'Cooldown (min)', c.cooldown_minutes, { type: 'number', icon: 'ph-hourglass', placeholder: '30' })}
@@ -445,18 +455,64 @@ const SETUP_WIZARD = (() => {
     if (el) el.classList.add('hidden');
   }
 
-  /** Validate Telegram bot token via API */
+  /** Validate Telegram bot token via API — returns { error, bot } */
   async function validateBotToken(token) {
     if (!token || !token.match(/^\d+:[A-Za-z0-9_-]{30,}$/)) {
-      return 'Invalid token format. Expected: 123456:ABC-DEF...';
+      return { error: 'Invalid token format. Expected: 123456:ABC-DEF...' };
     }
     try {
       const resp = await fetch('https://api.telegram.org/bot' + token + '/getMe');
       const data = await resp.json();
-      if (!data.ok) return 'Token rejected by Telegram: ' + (data.description || 'unknown error');
-      return null; // valid
+      if (!data.ok) return { error: 'Token rejected by Telegram: ' + (data.description || 'unknown error') };
+      return { error: null, bot: data.result };
     } catch (e) {
-      return 'Could not reach Telegram API. Check your connection.';
+      return { error: 'Could not reach Telegram API. Check your connection.' };
+    }
+  }
+
+  /** Live-check a bot token field and show result below it */
+  let _tokenCheckTimers = {};
+  function attachTokenChecker(inputId, infoId, accent) {
+    const input = $(inputId);
+    if (!input) return;
+    const handler = function() {
+      clearTimeout(_tokenCheckTimers[inputId]);
+      _tokenCheckTimers[inputId] = setTimeout(function() { checkTokenField(inputId, infoId, accent); }, 400);
+    };
+    input.addEventListener('input', handler);
+    input.addEventListener('paste', function() { setTimeout(handler, 50); });
+    // If there's already a value, check immediately
+    if (input.value && input.value.includes(':')) handler();
+  }
+
+  async function checkTokenField(inputId, infoId, accent) {
+    const input = $(inputId);
+    const info = $(infoId);
+    if (!input || !info) return;
+    const token = input.value.trim();
+
+    if (!token) { info.innerHTML = ''; info.className = 'mt-2 hidden'; return; }
+    if (!token.match(/^\d+:[A-Za-z0-9_-]{30,}$/)) {
+      info.className = 'mt-2';
+      info.innerHTML = '';
+      return;
+    }
+
+    // Show loading
+    const accentColor = accent === 'violet' ? 'text-violet-400' : accent === 'amber' ? 'text-amber-400' : 'text-cyan-400';
+    info.className = 'mt-2 flex items-center gap-2 text-xs text-slate-400';
+    const spinColor = accent === 'violet' ? '#a78bfa' : accent === 'amber' ? '#fbbf24' : '#22d3ee';
+    info.innerHTML = '<span class="inline-block w-3 h-3 rounded-full animate-spin" style="border:2px solid #475569;border-top-color:' + spinColor + '"></span> Checking bot...';
+
+    const result = await validateBotToken(token);
+    if (result.error) {
+      info.className = 'mt-2 flex items-center gap-2 text-xs text-red-400';
+      info.innerHTML = '<i class="ph-bold ph-warning-circle"></i> ' + san(result.error);
+    } else {
+      const bot = result.bot;
+      const name = san(bot.first_name || '') + (bot.last_name ? ' ' + san(bot.last_name) : '');
+      info.className = 'mt-2 flex items-center gap-2 text-xs ' + accentColor;
+      info.innerHTML = '<i class="ph-bold ph-check-circle"></i> <span class="font-mono">@' + san(bot.username) + '</span> <span class="text-slate-500">' + name + '</span>';
     }
   }
 
@@ -482,9 +538,9 @@ const SETUP_WIZARD = (() => {
         const token = cfg.postflow.telegram_bot_token;
         if (!token) return 'Telegram Bot Token is required.';
         setLoading(true);
-        const err = await validateBotToken(token);
+        const res = await validateBotToken(token);
         setLoading(false);
-        return err;
+        return res.error;
       }
       case 2: { // Autoeditors
         const token = cfg.autoeditors.telegram_bot_token;
@@ -492,17 +548,17 @@ const SETUP_WIZARD = (() => {
         if (!cfg.autoeditors.google_drive_api_key) return 'Google Drive API Key is required.';
         if (!cfg.autoeditors.google_service_account_email) return 'Service Account Email is required.';
         setLoading(true);
-        const err = await validateBotToken(token);
+        const res = await validateBotToken(token);
         setLoading(false);
-        return err;
+        return res.error;
       }
       case 3: { // Superboost
         const token = cfg.superboost.telegram_bot_token;
         if (!token) return 'Telegram Bot Token is required.';
         setLoading(true);
-        const err = await validateBotToken(token);
+        const res = await validateBotToken(token);
         setLoading(false);
-        return err;
+        return res.error;
       }
     }
     return null;
