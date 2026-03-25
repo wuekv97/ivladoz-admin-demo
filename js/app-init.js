@@ -459,21 +459,32 @@ function sbToggleConfig(key) {
    =========================================================== */
 
 (function() {
-  function initApp() {
-    // 0. Check if setup wizard needs to run
-    if (typeof SETUP_WIZARD !== 'undefined' && !SETUP_WIZARD.isComplete()) {
-      // Hide login page, show wizard
-      var loginPage = document.getElementById('login-page');
-      if (loginPage) loginPage.classList.add('hidden');
-      SETUP_WIZARD.init();
-      // Still init API so wizard can write to it on completion
-      if (typeof API !== 'undefined' && API.init) API.init();
-      return; // Don't init the rest until wizard completes
+  async function initApp() {
+    // 1. Init API layer (auto-detects backend or falls back to localStorage)
+    if (typeof API !== 'undefined' && API.init) {
+      await API.init();
     }
 
-    // 1. Init API layer (seeds data if empty)
-    if (typeof API !== 'undefined' && API.init) {
-      API.init();
+    var isOnline = typeof API !== 'undefined' && API.config && API.config.baseUrl;
+
+    // 0. Check if setup wizard needs to run
+    if (typeof SETUP_WIZARD !== 'undefined') {
+      var setupComplete = false;
+      if (isOnline) {
+        try {
+          var r = await fetch('/api/setup/status', { credentials: 'include' });
+          var d = await r.json();
+          setupComplete = d && d.complete;
+        } catch (e) { setupComplete = false; }
+      } else {
+        setupComplete = SETUP_WIZARD.isComplete();
+      }
+      if (!setupComplete) {
+        var loginPage = document.getElementById('login-page');
+        if (loginPage) loginPage.classList.add('hidden');
+        SETUP_WIZARD.init();
+        return;
+      }
     }
 
     // 2. Apply security patches
@@ -481,12 +492,32 @@ function sbToggleConfig(key) {
       SECURITY.applyPatches();
     }
 
-    // 3. Init AUTH (shows login page)
+    // 3. Check existing session (backend cookie) before showing login
+    if (isOnline && typeof AUTH !== 'undefined') {
+      try {
+        var session = await API.auth.getSession();
+        if (session && session.id) {
+          AUTH.currentUser = session;
+          AUTH.startSessionTimer();
+          AUTH.applyRoleRestrictions();
+          AUTH.updateAuthHeader();
+          AUTH.hideLoginPage();
+          // Init CRUD modules
+          if (typeof POSTFLOW_UI !== 'undefined' && POSTFLOW_UI.init) POSTFLOW_UI.init();
+          if (typeof AUTOEDITORS_UI !== 'undefined' && AUTOEDITORS_UI.init) AUTOEDITORS_UI.init();
+          if (typeof SB_UI !== 'undefined' && SB_UI.init) SB_UI.init();
+          switchSystem('postflow');
+          return;
+        }
+      } catch (e) { /* no session — show login */ }
+    }
+
+    // 4. Init AUTH (shows login page)
     if (typeof AUTH !== 'undefined' && AUTH.init) {
       AUTH.init();
     }
 
-    // 4. Init CRUD modules (they render into their containers)
+    // 5. Init CRUD modules (they render into their containers)
     if (typeof POSTFLOW_UI !== 'undefined' && POSTFLOW_UI.init) {
       POSTFLOW_UI.init();
     }
@@ -497,7 +528,7 @@ function sbToggleConfig(key) {
       SB_UI.init();
     }
 
-    // 5. Default: show Postflow system
+    // 6. Default: show Postflow system
     switchSystem('postflow');
   }
 
@@ -505,7 +536,7 @@ function sbToggleConfig(key) {
   window._initApp = initApp;
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initApp);
+    document.addEventListener('DOMContentLoaded', function() { initApp(); });
   } else {
     initApp();
   }

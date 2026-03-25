@@ -144,15 +144,14 @@
         API.autoeditors.getFolders(),
         API.autoeditors.getAssignments(),
         API.autoeditors.getLogs(),
-        API.autoeditors.getConfig(),
-        API.autoeditors.getUnassignedFiles()
+        API.autoeditors.getConfig()
       ]).then(function(results) {
         _state.editors = results[0] || [];
         _state.folders = results[1] || [];
         _state.assignments = results[2] || [];
         _state.logs = results[3] || [];
         _state.config = results[4] || {};
-        _state.unassignedFiles = results[5] || [];
+        _state.unassignedFiles = [];
 
         self.renderAll();
       }).catch(function(err) {

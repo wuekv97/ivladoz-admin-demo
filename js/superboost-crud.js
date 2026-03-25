@@ -47,7 +47,12 @@
     'Done':       'bg-emerald-500/20 text-emerald-400'
   };
 
-  /* ---- Local state for filters ---- */
+  /* ---- Local state ---- */
+  var _accounts = [];
+  var _tasks = [];
+  var _rules = [];
+  var _assistants = [];
+  var _sbConfig = {};
   var _accountFilters = { platform: 'All', status: 'All', search: '', sort: 'username' };
   var _taskFilters    = { status: 'All', platform: 'All', assistant: 'All', search: '' };
   var _pendingDelete  = null;
@@ -124,6 +129,34 @@
     /* ---- Init entry point ---- */
     init: function() {
       this._bindGlobalClicks();
+      this._loadData();
+    },
+
+    _loadData: function() {
+      var self = this;
+      Promise.all([
+        API.superboost.getAccounts(),
+        API.superboost.getTasks(),
+        API.superboost.getRules(),
+        API.superboost.getAssistants(),
+        API.superboost.getConfig(),
+        API.superboost.getDashboardStats()
+      ]).then(function(results) {
+        _accounts = results[0] || [];
+        _tasks = results[1] || [];
+        _rules = results[2] || [];
+        _assistants = results[3] || [];
+        _sbConfig = results[4] || {};
+        var stats = results[5] || {};
+        self.renderDashboard(stats);
+        self.renderAccountsTable(_accounts);
+        self.renderTasksTable(_tasks);
+        self.renderRulesGrid(_rules);
+        self.renderAssistantsGrid(_assistants);
+        self.renderConfigPanel(_sbConfig);
+      }).catch(function(err) {
+        console.error('SB_UI init error:', err);
+      });
     },
 
     _bindGlobalClicks: function() {
@@ -1180,17 +1213,12 @@
        ============================================================ */
     setAccountFilter: function(key, value) {
       _accountFilters[key] = value;
-      // Re-render by fetching data from API
-      if (typeof API !== 'undefined' && API.superboost && API.superboost.listAccounts) {
-        this.renderAccountsTable(API.superboost.listAccounts());
-      }
+      this.renderAccountsTable(_accounts);
     },
 
     setTaskFilter: function(key, value) {
       _taskFilters[key] = value;
-      if (typeof API !== 'undefined' && API.superboost && API.superboost.listTasks) {
-        this.renderTasksTable(API.superboost.listTasks());
-      }
+      this.renderTasksTable(_tasks);
     },
 
 
@@ -1207,11 +1235,6 @@
 
   };
 
-  // Auto-init when DOM is ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function() { SB_UI.init(); });
-  } else {
-    SB_UI.init();
-  }
+  // Init is called from app-init.js
 
 })();

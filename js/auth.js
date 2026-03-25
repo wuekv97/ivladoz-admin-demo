@@ -75,6 +75,10 @@ const AUTH = {
   },
 
   logout() {
+    var isOnline = typeof API !== 'undefined' && API.config && API.config.baseUrl;
+    if (isOnline) {
+      API.auth.logout().catch(function() {});
+    }
     if (this.currentUser) {
       this.addAuditEntry('logout', 'auth', '--', 'Manual logout');
     }
@@ -83,14 +87,38 @@ const AUTH = {
     this.showLoginPage();
   },
 
-  handleLoginForm(event) {
+  async handleLoginForm(event) {
     event.preventDefault();
     const email = document.getElementById('login-email').value.trim();
     const password = document.getElementById('login-password').value;
     const errorEl = document.getElementById('login-error');
     const errorTextEl = document.getElementById('login-error-text');
 
-    const result = this.login(email, password);
+    var isOnline = typeof API !== 'undefined' && API.config && API.config.baseUrl;
+    var result;
+
+    if (isOnline) {
+      // Use backend API for login
+      try {
+        var user = await API.auth.login(email, password);
+        this.currentUser = user;
+        this.startSessionTimer();
+        this.applyRoleRestrictions();
+        this.updateAuthHeader();
+        errorEl.classList.add('hidden');
+        this.hideLoginPage();
+        // Init CRUD modules after login
+        if (typeof POSTFLOW_UI !== 'undefined' && POSTFLOW_UI.init) POSTFLOW_UI.init();
+        if (typeof AUTOEDITORS_UI !== 'undefined' && AUTOEDITORS_UI.init) AUTOEDITORS_UI.init();
+        if (typeof SB_UI !== 'undefined' && SB_UI.init) SB_UI.init();
+        if (typeof switchSystem === 'function') switchSystem('postflow');
+        return;
+      } catch (e) {
+        result = { success: false, error: e.message || 'Login failed' };
+      }
+    } else {
+      result = this.login(email, password);
+    }
 
     if (!result.success) {
       errorTextEl.textContent = result.error;

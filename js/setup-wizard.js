@@ -625,60 +625,55 @@ const SETUP_WIZARD = (() => {
     },
 
     /** Complete the wizard */
-    complete(cfg) {
-      // Apply config to API layer defaults
-      if (typeof API !== 'undefined') {
-        // Push wizard config values into API config stores
-        const db = localStorage.getItem('ivladoz_admin_db');
+    async complete(cfg) {
+      var isOnline = typeof API !== 'undefined' && API.config && API.config.baseUrl;
+
+      if (isOnline) {
+        // Save wizard config to backend
+        try {
+          await fetch('/api/setup', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+            body: JSON.stringify({ completed: true, postflow: cfg.postflow, autoeditors: cfg.autoeditors, superboost: cfg.superboost })
+          });
+          // Push configs to backend
+          var cfgMaps = [
+            { sys: 'postflow', pairs: { POST_INTERVAL_SECONDS: cfg.postflow.post_interval_seconds, MAX_RETRIES: cfg.postflow.max_retries, QUARANTINE_HOURS: cfg.postflow.quarantine_hours, TIMEZONE: cfg.postflow.timezone, TELEGRAM_BOT_TOKEN: cfg.postflow.telegram_bot_token } },
+            { sys: 'autoeditors', pairs: { SYNC_INTERVAL_MINUTES: cfg.autoeditors.sync_interval_minutes, MAX_ACTIVE_PER_EDITOR: cfg.autoeditors.max_active_per_editor, AUTO_ASSIGN: String(cfg.autoeditors.auto_assign), TELEGRAM_BOT_TOKEN: cfg.autoeditors.telegram_bot_token, SERVICE_ACCOUNT_JSON: cfg.autoeditors.service_account_json ? 'uploaded' : '', GOOGLE_SERVICE_ACCOUNT: cfg.autoeditors.google_service_account_email, GOOGLE_SHEETS_ID: cfg.autoeditors.google_sheets_id } },
+            { sys: 'superboost', pairs: { MAX_DAILY_TASKS: cfg.superboost.max_daily_tasks, COOLDOWN_MINUTES: cfg.superboost.cooldown_minutes, AUTO_ROTATE: String(cfg.superboost.auto_rotate), DEFAULT_PLATFORM: cfg.superboost.default_platform, TELEGRAM_BOT_TOKEN: cfg.superboost.telegram_bot_token } }
+          ];
+          for (var m = 0; m < cfgMaps.length; m++) {
+            var sm = cfgMaps[m];
+            for (var k in sm.pairs) {
+              if (sm.pairs[k] !== undefined && sm.pairs[k] !== '') {
+                await API[sm.sys].setConfig(k, sm.pairs[k]);
+              }
+            }
+          }
+          // Create autoeditors folders via API
+          if (cfg.autoeditors.folders && cfg.autoeditors.folders.length) {
+            for (var fi = 0; fi < cfg.autoeditors.folders.length; fi++) {
+              var f = cfg.autoeditors.folders[fi];
+              await API.autoeditors.createFolder({ name: f.name, driveId: f.driveId, type: f.type || 'source' });
+            }
+          }
+        } catch (e) { console.warn('Setup: backend save error', e); }
+      } else {
+        // Fallback: localStorage mode
+        var db = localStorage.getItem(STORAGE_KEY);
         if (db) {
           try {
-            const data = JSON.parse(db);
-            // Postflow config
-            data.postflow_config = Object.assign(data.postflow_config || {}, {
-              POST_INTERVAL_SECONDS: cfg.postflow.post_interval_seconds,
-              MAX_RETRIES: cfg.postflow.max_retries,
-              QUARANTINE_HOURS: cfg.postflow.quarantine_hours,
-              TIMEZONE: cfg.postflow.timezone,
-              TELEGRAM_BOT_TOKEN: cfg.postflow.telegram_bot_token
-            });
-            // Autoeditors config
-            data.autoeditors_config = Object.assign(data.autoeditors_config || {}, {
-              SYNC_INTERVAL_MINUTES: cfg.autoeditors.sync_interval_minutes,
-              MAX_ACTIVE_PER_EDITOR: cfg.autoeditors.max_active_per_editor,
-              AUTO_ASSIGN: String(cfg.autoeditors.auto_assign),
-              TELEGRAM_BOT_TOKEN: cfg.autoeditors.telegram_bot_token,
-              SERVICE_ACCOUNT_JSON: cfg.autoeditors.service_account_json ? 'uploaded' : '',
-              GOOGLE_SERVICE_ACCOUNT: cfg.autoeditors.google_service_account_email,
-              GOOGLE_SHEETS_ID: cfg.autoeditors.google_sheets_id
-            });
-            // Superboost config
-            data.superboost_config = Object.assign(data.superboost_config || {}, {
-              MAX_DAILY_TASKS: cfg.superboost.max_daily_tasks,
-              COOLDOWN_MINUTES: cfg.superboost.cooldown_minutes,
-              AUTO_ROTATE: String(cfg.superboost.auto_rotate),
-              DEFAULT_PLATFORM: cfg.superboost.default_platform,
-              TELEGRAM_BOT_TOKEN: cfg.superboost.telegram_bot_token
-            });
-            // Autoeditors folders
+            var data = JSON.parse(db);
+            data.postflow_config = Object.assign(data.postflow_config || {}, { POST_INTERVAL_SECONDS: cfg.postflow.post_interval_seconds, MAX_RETRIES: cfg.postflow.max_retries, QUARANTINE_HOURS: cfg.postflow.quarantine_hours, TIMEZONE: cfg.postflow.timezone, TELEGRAM_BOT_TOKEN: cfg.postflow.telegram_bot_token });
+            data.autoeditors_config = Object.assign(data.autoeditors_config || {}, { SYNC_INTERVAL_MINUTES: cfg.autoeditors.sync_interval_minutes, MAX_ACTIVE_PER_EDITOR: cfg.autoeditors.max_active_per_editor, AUTO_ASSIGN: String(cfg.autoeditors.auto_assign), TELEGRAM_BOT_TOKEN: cfg.autoeditors.telegram_bot_token, SERVICE_ACCOUNT_JSON: cfg.autoeditors.service_account_json ? 'uploaded' : '', GOOGLE_SERVICE_ACCOUNT: cfg.autoeditors.google_service_account_email, GOOGLE_SHEETS_ID: cfg.autoeditors.google_sheets_id });
+            data.superboost_config = Object.assign(data.superboost_config || {}, { MAX_DAILY_TASKS: cfg.superboost.max_daily_tasks, COOLDOWN_MINUTES: cfg.superboost.cooldown_minutes, AUTO_ROTATE: String(cfg.superboost.auto_rotate), DEFAULT_PLATFORM: cfg.superboost.default_platform, TELEGRAM_BOT_TOKEN: cfg.superboost.telegram_bot_token });
             if (cfg.autoeditors.folders && cfg.autoeditors.folders.length) {
-              data.autoeditors_folders = cfg.autoeditors.folders.map(function(f, i) {
-                return {
-                  id: 'wiz_f' + (i + 1),
-                  name: f.name,
-                  driveId: f.driveId,
-                  type: f.type || 'source',
-                  lastSync: null,
-                  createdAt: new Date().toISOString(),
-                  updatedAt: new Date().toISOString()
-                };
-              });
+              data.autoeditors_folders = cfg.autoeditors.folders.map(function(f, i) { return { id: 'wiz_f' + (i + 1), name: f.name, driveId: f.driveId, type: f.type || 'source', lastSync: null, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }; });
             }
             localStorage.setItem('ivladoz_admin_db', JSON.stringify(data));
           } catch (e) { console.warn('Setup: could not patch DB', e); }
         }
+        localStorage.setItem(COMPLETE_KEY, 'true');
       }
-
-      localStorage.setItem(COMPLETE_KEY, 'true');
 
       // Hide wizard, boot the full app
       const wizPage = $('setup-wizard-page');
@@ -686,7 +681,6 @@ const SETUP_WIZARD = (() => {
       if (typeof window._initApp === 'function') {
         window._initApp();
       } else {
-        // Fallback: just show login
         const loginPage = $('login-page');
         if (loginPage) loginPage.classList.remove('hidden');
       }
@@ -769,8 +763,13 @@ const SETUP_WIZARD = (() => {
     },
 
     /** Skip wizard (for demo) */
-    skip() {
-      localStorage.setItem(COMPLETE_KEY, 'true');
+    async skip() {
+      var isOnline = typeof API !== 'undefined' && API.config && API.config.baseUrl;
+      if (isOnline) {
+        try { await fetch('/api/setup', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ completed: true }) }); } catch (e) {}
+      } else {
+        localStorage.setItem(COMPLETE_KEY, 'true');
+      }
       const wizPage = $('setup-wizard-page');
       if (wizPage) wizPage.classList.add('hidden');
       if (typeof window._initApp === 'function') {
@@ -782,9 +781,14 @@ const SETUP_WIZARD = (() => {
     },
 
     /** Reset wizard (for settings page) */
-    reset() {
-      localStorage.removeItem(COMPLETE_KEY);
-      localStorage.removeItem(STORAGE_KEY);
+    async reset() {
+      var isOnline = typeof API !== 'undefined' && API.config && API.config.baseUrl;
+      if (isOnline) {
+        try { await fetch('/api/setup', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ completed: false }) }); } catch (e) {}
+      } else {
+        localStorage.removeItem(COMPLETE_KEY);
+        localStorage.removeItem(STORAGE_KEY);
+      }
     },
 
     /** Get current config for settings page */

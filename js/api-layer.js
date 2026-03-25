@@ -62,40 +62,46 @@ const API = (() => {
   };
 
   // -- CRUD factory -----------------------------------------------------------
+  /** Derive clean remote path: 'postflow_items' with sys='postflow' -> 'items' */
+  const _remotePath = (col, sys) => col.startsWith(sys + '_') ? col.slice(sys.length + 1) : col;
+
   /** Build getAll / getById / create / update / delete for a collection */
-  const crud = (col, label, sys, reqFields) => ({
-    async getAll()       { return _baseUrl ? _fetch('GET', `/${sys}/${col}`) : ok(clone(_db[col])); },
-    async getById(id)    { if (_baseUrl) return _fetch('GET', `/${sys}/${col}/${id}`); const r = _db[col].find((x) => x.id === id); if (!r) throw new Error(`${label} not found`); return clone(r); },
+  const crud = (col, label, sys, reqFields) => {
+    const rp = _remotePath(col, sys);
+    return {
+    async getAll()       { return _baseUrl ? _fetch('GET', `/${sys}/${rp}`) : ok(clone(_db[col])); },
+    async getById(id)    { if (_baseUrl) return _fetch('GET', `/${sys}/${rp}/${id}`); const r = _db[col].find((x) => x.id === id); if (!r) throw new Error(`${label} not found`); return clone(r); },
     async create(data) {
-      if (_baseUrl) return _fetch('POST', `/${sys}/${col}`, data);
+      if (_baseUrl) return _fetch('POST', `/${sys}/${rp}`, data);
       req(data, reqFields, label);
       const e = { id: uid(), ...data, createdAt: now(), updatedAt: now() };
       _db[col].push(e); _audit(`${col}_created`, sys, e.id, `${label}: ${data.name || e.id}`); save();
       _emit('data:changed', { collection: col, action: 'create', id: e.id }); return clone(e);
     },
     async update(id, data) {
-      if (_baseUrl) return _fetch('PATCH', `/${sys}/${col}/${id}`, data);
+      if (_baseUrl) return _fetch('PATCH', `/${sys}/${rp}/${id}`, data);
       const i = _db[col].findIndex((x) => x.id === id); if (i === -1) throw new Error(`${label} not found`);
       Object.assign(_db[col][i], data, { updatedAt: now() });
       _audit(`${col}_updated`, sys, id, JSON.stringify(data).slice(0, 120)); save();
       _emit('data:changed', { collection: col, action: 'update', id }); return clone(_db[col][i]);
     },
     async delete(id) {
-      if (_baseUrl) return _fetch('DELETE', `/${sys}/${col}/${id}`);
+      if (_baseUrl) return _fetch('DELETE', `/${sys}/${rp}/${id}`);
       const i = _db[col].findIndex((x) => x.id === id); if (i === -1) throw new Error(`${label} not found`);
       const rm = _db[col].splice(i, 1)[0]; _audit(`${col}_deleted`, sys, id, `${label}: ${rm.name || id}`); save();
       _emit('data:changed', { collection: col, action: 'delete', id });
     }
-  });
+    };
+  };
 
   /** Build toggle enabled/disabled for a collection item */
-  const toggleFn = (col, label, sys) => async function toggle(id) {
-    if (_baseUrl) return _fetch('POST', `/${sys}/${col}/${id}/toggle`);
+  const toggleFn = (col, label, sys) => { const rp = _remotePath(col, sys); return async function toggle(id) {
+    if (_baseUrl) return _fetch('POST', `/${sys}/${rp}/${id}/toggle`);
     const r = _db[col].find((x) => x.id === id); if (!r) throw new Error(`${label} not found`);
     r.enabled = !r.enabled; r.updatedAt = now();
     _audit(`${col}_toggled`, sys, id, `${r.name || id} -> ${r.enabled ? 'enabled' : 'disabled'}`); save();
     _emit('data:changed', { collection: col, action: 'update', id }); return clone(r);
-  };
+  }; };
 
   /** Build config get / set pair */
   const configPair = (key, sys) => ({
@@ -138,9 +144,17 @@ const API = (() => {
     config: { baseUrl: null },
 
     // -- Core -----------------------------------------------------------------
-    /** Initialize the API layer. Loads from localStorage or seeds defaults. */
+    /** Initialize the API layer. Auto-detects backend, falls back to localStorage. */
     async init() {
-      // Version check: wipe old data on version mismatch
+      // Try to detect backend at /api/health
+      if (!this.config.baseUrl) {
+        try {
+          const r = await fetch('/api/health', { method: 'GET', credentials: 'include' });
+          if (r.ok) { _baseUrl = '/api'; this.config.baseUrl = '/api'; console.log('[API] Backend detected at /api'); return; }
+        } catch (e) { /* no backend — use localStorage */ }
+      }
+      if (this.config.baseUrl) { _baseUrl = this.config.baseUrl; return; }
+      // Fallback: localStorage mode
       const storedVersion = localStorage.getItem(VERSION_KEY);
       if (storedVersion !== CURRENT_VERSION) {
         localStorage.removeItem(STORAGE_KEY);
@@ -152,7 +166,6 @@ const API = (() => {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) try { _db = JSON.parse(raw); } catch { _db = null; }
       if (!_db) { _db = _defaults(); save(); }
-      _baseUrl = this.config.baseUrl || null;
     },
     /** Switch all future calls to a real REST endpoint. */
     async setBackend(url) { _baseUrl = url || null; this.config.baseUrl = _baseUrl; },
